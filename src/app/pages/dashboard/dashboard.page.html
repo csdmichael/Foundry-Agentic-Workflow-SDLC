@@ -1,0 +1,68 @@
+<h1>Welcome{{ user() ? ', ' + user()?.name : '' }}</h1>
+<p class="muted">Agentic SDLC operations at a glance.</p>
+
+<ion-grid>
+  <ion-row>
+    <ion-col size="12" size-md="4">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title><ion-icon name="folder-open-outline"></ion-icon> Active Projects</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="metric">{{ activeProjects() }}</div>
+          <ion-button routerLink="/projects" fill="clear" size="small">View all</ion-button>
+        </ion-card-content>
+      </ion-card>
+    </ion-col>
+    <ion-col size="12" size-md="4">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title><ion-icon name="git-network-outline"></ion-icon> Workflow Runs</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="metric">{{ runs().length }}</div>
+          <ion-button routerLink="/workflow-runs" fill="clear" size="small">View runs</ion-button>
+        </ion-card-content>
+      </ion-card>
+    </ion-col>
+    <ion-col size="12" size-md="4">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title><ion-icon name="checkmark-done-outline"></ion-icon> Pending Approvals</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="metric">{{ pending().length }}</div>
+          <ion-button routerLink="/approvals" fill="clear" size="small">Open queue</ion-button>
+        </ion-card-content>
+      </ion-card>
+    </ion-col>
+  </ion-row>
+</ion-grid>
+
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>Recent projects</ion-card-title>
+  </ion-card-header>
+  <ion-card-content>
+    @if (projects().length === 0) {
+      <p class="muted">No projects yet. <a routerLink="/projects/new">Create your first project</a>.</p>
+    } @else {
+      <ion-list>
+        @for (p of projects().slice(0, 6); track p.id) {
+          <ion-item [routerLink]="['/projects', p.id]" button detail>
+            <ion-label>
+              <h3>{{ p.name }}</h3>
+              <p class="muted">Stage: {{ p.currentStage }} · Owner: {{ p.businessOwner }}</p>
+            </ion-label>
+            <ion-badge slot="end">{{ p.state }}</ion-badge>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  </ion-card-content>
+</ion-card>
+
+<style>
+  .metric { font-size: 2.4rem; font-weight: 700; color: var(--ion-color-primary); }
+  ion-card-title ion-icon { vertical-align: middle; margin-right: 6px; }
+</style>

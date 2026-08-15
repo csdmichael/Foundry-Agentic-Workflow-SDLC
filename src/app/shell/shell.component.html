@@ -1,0 +1,78 @@
+<ion-split-pane contentId="main-content" when="md">
+  <ion-menu contentId="main-content" type="overlay">
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>
+          <img src="assets/microsoft-logo.svg" class="ms-logo" alt="Microsoft" />
+          Agentic SDLC
+        </ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      @for (section of visibleSections(); track section.title) {
+        <ion-list>
+          <ion-list-header>{{ section.title }}</ion-list-header>
+          @for (item of section.items; track item.path) {
+            <ion-menu-toggle auto-hide="false">
+              <ion-item
+                [routerLink]="item.path"
+                routerLinkActive="selected-item"
+                lines="none"
+                detail="false"
+                button
+              >
+                <ion-icon slot="start" [name]="item.icon"></ion-icon>
+                <ion-label>{{ item.title }}</ion-label>
+              </ion-item>
+            </ion-menu-toggle>
+          }
+        </ion-list>
+      }
+    </ion-content>
+    <ion-footer>
+      <div class="identity-footer">
+        <div>{{ ui.identity.name }} | {{ ui.identity.title }}</div>
+        <div>
+          <a [href]="ui.identity.linkedIn" target="_blank" rel="noopener">LinkedIn</a>
+          <a [href]="ui.identity.gitHubUrl" target="_blank" rel="noopener">{{ ui.identity.gitHub }}</a>
+        </div>
+      </div>
+    </ion-footer>
+  </ion-menu>
+
+  <div class="ion-page" id="main-content">
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-buttons slot="start">
+          <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>
+          <img src="assets/microsoft-logo.svg" class="ms-logo" alt="Microsoft" />
+          {{ ui.brand.product }}
+        </ion-title>
+        <ion-buttons slot="end">
+          @if (user()) {
+            <ion-note class="user-note">
+              {{ user()?.name }} · {{ roleLabel() }}
+            </ion-note>
+          }
+          <ion-button (click)="logout()" fill="clear" color="light">Sign out</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <div class="page-container">
+        <router-outlet></router-outlet>
+      </div>
+    </ion-content>
+
+    <ion-footer>
+      <div class="identity-footer">
+        {{ ui.identity.name }} | {{ ui.identity.title }} —
+        <a [href]="ui.identity.linkedIn" target="_blank" rel="noopener">LinkedIn</a>
+        <a [href]="ui.identity.gitHubUrl" target="_blank" rel="noopener">{{ ui.identity.gitHub }}</a>
+      </div>
+    </ion-footer>
+  </div>
+</ion-split-pane>

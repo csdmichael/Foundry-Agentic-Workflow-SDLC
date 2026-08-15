@@ -1,0 +1,27 @@
+.ms-logo {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.selected-item {
+  --background: rgba(15, 76, 129, 0.12);
+  --color: var(--ion-color-primary);
+  font-weight: 600;
+}
+
+.user-note {
+  font-size: 0.8rem;
+  margin-right: 8px;
+  color: #fff;
+  opacity: 0.9;
+}
+
+ion-list-header {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: var(--ion-color-medium);
+}

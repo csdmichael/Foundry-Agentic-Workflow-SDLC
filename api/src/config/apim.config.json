@@ -1,0 +1,40 @@
+{
+  "$comment": "APIM gateway configuration in front of Azure AI Foundry. All Foundry calls route through APIM. Subscription key / MSI come from env, never here.",
+  "gateway": {
+    "baseUrl": "https://ai-gateway-apim-poc-my.azure-api.net",
+    "authMode": "subscription-key",
+    "subscriptionKeyHeader": "Ocp-Apim-Subscription-Key",
+    "correlationIdHeader": "x-correlation-id",
+    "timeoutMs": 60000,
+    "retry": {
+      "maxRetries": 2,
+      "backoffMs": 500,
+      "retryOnStatuses": [429, 502, 503, 504]
+    },
+    "throttlingPolicyName": "foundry-standard-throttle"
+  },
+  "foundry": {
+    "$comment": "TODO: confirm project + deployment names for your Foundry project.",
+    "projectEndpoint": "https://002-ai-poc-private.services.ai.azure.com/api/projects/proj-default",
+    "allowDirectInLocalDevOnly": true,
+    "routes": {
+      "chatCompletions": "foundry/chat/completions",
+      "agents": "foundry/agents",
+      "contentSafety": "foundry/contentsafety/analyze"
+    }
+  },
+  "logging": {
+    "$comment": "Fields captured on every Foundry/APIM call for auditability.",
+    "capturedFields": [
+      "promptId",
+      "agentId",
+      "modelName",
+      "tokenEstimate",
+      "projectId",
+      "userId",
+      "approvalGateId",
+      "workflowRunId",
+      "correlationId"
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+api/node_modules/
+
+# Build output
+dist/
+api/dist/
+out-tsc/
+.angular/
+
+# Local persistence / uploads / logs (never commit runtime data)
+api/data/
+*.log
+
+# Secrets — never commit
+.env
+api/.env
+*.local.json
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+
+# Test / coverage
+coverage/

@@ -1,0 +1,51 @@
+.login-bg {
+  --background: linear-gradient(160deg, #0f4c81 0%, #5c2d91 100%);
+}
+
+.login-wrap {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.ms-logo-lg {
+  width: 22px;
+  height: 22px;
+}
+
+.divider {
+  text-align: center;
+  margin: 16px 0;
+  border-top: 1px solid var(--ion-color-step-150, #e0e0e0);
+  position: relative;
+
+  span {
+    position: relative;
+    top: -12px;
+    background: var(--ion-background-color, #fff);
+    padding: 0 10px;
+    color: var(--ion-color-medium);
+    font-size: 0.8rem;
+  }
+}
+
+.identity-footer {
+  color: rgba(255, 255, 255, 0.85);
+  a { color: #fff; }
+}

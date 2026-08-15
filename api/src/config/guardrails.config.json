@@ -1,0 +1,38 @@
+{
+  "$comment": "Guardrail policies applied before and after agent outputs. Non-secret.",
+  "policies": [
+    {
+      "id": "gp-content-safety",
+      "name": "Content Safety",
+      "description": "Screens prompts and completions for harmful content categories.",
+      "appliesTo": ["pre", "post"],
+      "severityThreshold": "medium",
+      "action": "block",
+      "enabled": true
+    },
+    {
+      "id": "gp-pii-redaction",
+      "name": "PII Redaction",
+      "description": "Redacts detected PII from agent inputs and outputs before persistence.",
+      "appliesTo": ["pre", "post"],
+      "action": "redact",
+      "enabled": true
+    },
+    {
+      "id": "gp-secret-scan",
+      "name": "Secret Scanning",
+      "description": "Blocks agent outputs that appear to contain secrets/keys/tokens.",
+      "appliesTo": ["post"],
+      "action": "block",
+      "enabled": true
+    },
+    {
+      "id": "gp-approval-required",
+      "name": "Human Approval Required",
+      "description": "Blocks stage promotion when a required approval gate is missing.",
+      "appliesTo": ["pre"],
+      "action": "block",
+      "enabled": true
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "$comment": "Seed users applied on startup. Non-secret. App Owners get full access including user maintenance.",
+  "seedUsers": [
+    {
+      "name": "Admin (Demo Tenant)",
+      "email": "admin@MngEnvMCAP829495.onmicrosoft.com",
+      "role": "app_owner",
+      "provider": "entra-id"
+    },
+    {
+      "name": "Michael Yaacoub",
+      "email": "myaacoub@MngEnvMCAP829495.onmicrosoft.com",
+      "role": "app_owner",
+      "provider": "entra-id"
+    },
+    {
+      "name": "Michael Yaacoub",
+      "email": "myaacoub@microsoft.com",
+      "role": "app_owner",
+      "provider": "email-otp"
+    }
+  ]
+}

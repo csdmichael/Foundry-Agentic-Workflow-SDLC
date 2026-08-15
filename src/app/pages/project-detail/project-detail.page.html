@@ -1,0 +1,103 @@
+@if (detail(); as d) {
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+    <div>
+      <h1>{{ d.project.name }}</h1>
+      <p class="muted">{{ d.project.description }}</p>
+    </div>
+    <ion-badge [color]="badgeColor(d.project.state)">{{ d.project.state }}</ion-badge>
+  </div>
+
+  @if (error()) { <ion-text color="danger"><p>{{ error() }}</p></ion-text> }
+
+  <ion-card>
+    <ion-card-header><ion-card-title>Lifecycle</ion-card-title></ion-card-header>
+    <ion-card-content>
+      <div class="workflow-timeline">
+        @for (stage of d.run?.stages ?? []; track stage.stage) {
+          <div class="stage">
+            <strong>{{ stage.stage }}</strong>
+            <ion-badge [color]="badgeColor(stage.state)" class="state-badge">{{ stage.state }}</ion-badge>
+          </div>
+        }
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header><ion-card-title>Approval gates</ion-card-title></ion-card-header>
+    <ion-card-content>
+      <ion-textarea [(ngModel)]="comment" placeholder="Optional comment for your decision" autoGrow
+        [ngModelOptions]="{ standalone: true }"></ion-textarea>
+      <ion-list>
+        @for (gate of d.gates; track gate.id) {
+          <ion-item lines="full">
+            <ion-label>
+              <h3>{{ gate.name }}</h3>
+              <p class="muted">Stage: {{ gate.lifecycleStage }} · Requires: {{ gate.requiredRole }}</p>
+              @if (gate.decisions.length > 0) {
+                <p class="muted">Last: {{ gate.decisions[gate.decisions.length - 1].decision }}
+                  by {{ gate.decisions[gate.decisions.length - 1].approver }}</p>
+              }
+            </ion-label>
+            <div slot="end" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+              <ion-badge [color]="badgeColor(gate.state)">{{ gate.state }}</ion-badge>
+              @if (gate.state === 'AwaitingApproval') {
+                <div style="display:flex;gap:4px;">
+                  <ion-button size="small" color="success" (click)="decide(gate, 'approve')" [disabled]="busy() === gate.id">Approve</ion-button>
+                  <ion-button size="small" color="warning" (click)="decide(gate, 'request-changes')" [disabled]="busy() === gate.id">Changes</ion-button>
+                  <ion-button size="small" color="danger" (click)="decide(gate, 'reject')" [disabled]="busy() === gate.id">Reject</ion-button>
+                </div>
+              }
+            </div>
+          </ion-item>
+        }
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header><ion-card-title>Run agents</ion-card-title></ion-card-header>
+    <ion-card-content>
+      <p class="muted">Agents blocked by an unapproved gate return a 403 (enforced server-side).</p>
+      <ion-list>
+        @for (stage of ['plan','design','build','test','security','deploy']; track stage) {
+          @if (agentFor(stage); as agent) {
+            <ion-item>
+              <ion-label>
+                <h3>{{ agent.displayName }}</h3>
+                <p class="muted">{{ agent.modelDeploymentName }} via {{ agent.apimRoute }}</p>
+              </ion-label>
+              <ion-button slot="end" size="small" (click)="runAgent(stage)"
+                [disabled]="busy() === agent.agentId || !canApprove('agents.run')">
+                @if (busy() === agent.agentId) { <ion-spinner name="dots"></ion-spinner> } @else { Run }
+              </ion-button>
+            </ion-item>
+          }
+        }
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header><ion-card-title>Artifacts & agent runs</ion-card-title></ion-card-header>
+    <ion-card-content>
+      @if (d.agentRuns.length === 0) { <p class="muted">No agent runs yet.</p> }
+      <ion-list>
+        @for (run of d.agentRuns; track run.id) {
+          <ion-item lines="full">
+            <ion-label>
+              <h3>{{ run.agentId }} <ion-chip [color]="badgeColor(run.state)">{{ run.state }}</ion-chip></h3>
+              <p class="muted">{{ run.summary }}</p>
+              @if (run.guardrailFindings.length > 0) {
+                <p><ion-chip color="danger">{{ run.guardrailFindings.length }} guardrail finding(s)</ion-chip></p>
+              }
+              <p class="muted">tokens≈{{ run.tokenEstimate }} · {{ run.startedAt | date:'short' }}</p>
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+} @else {
+  <ion-spinner></ion-spinner>
+}

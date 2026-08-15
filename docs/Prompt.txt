@@ -1,0 +1,317 @@
+Context:
+Build an Agentic SDLC / Software Factory application based on the attached architecture diagrams and the existing local reference project:
+C:\Projects\Fabric\Fabric-IQ-Ontology-Parts-Shortages
+
+Use the authentication pattern from that repo as a reference, especially OTP and Entra ID authentication. Do not copy secrets. Reuse only safe patterns, structure, and implementation ideas.
+
+Application goal:
+Create a responsive application that orchestrates specialized Azure AI Foundry agents across the software development lifecycle. The workflow must support project intake, requirements and UX mockup ingestion, ADO backlog generation, repo and pipeline creation, design publishing, security guardrails, and explicit human approval gates before any agent action advances to the next stage.
+
+Technology stack:
+- Frontend: Angular, TypeScript, Ionic
+- Responsive UI layouts for Phone, Tablet, and Web
+- Backend API: choose a clean Node.js/TypeScript or .NET API based on the repo structure. Prefer consistency with the current project if one exists.
+- Database: use a configurable persistence layer. If no DB exists yet, implement a clean repository pattern with a local development option and Azure-ready configuration.
+- Authentication: Microsoft Entra ID plus OTP
+- Gateway: Azure API Management as the gateway in front of Foundry APIs
+- Agent orchestration: configurable Foundry agents, tools, and models
+- Integrations: Azure DevOps, GitHub, SharePoint, OneDrive, local file upload, MCP servers where applicable
+
+Important architecture rules:
+1. Keep configuration separated by tier.
+   - UI config must live under the UI tier in a config folder.
+   - API config must live under the API tier in a config folder.
+   - DB config must live under the DB or persistence tier in a config folder.
+   - Agent config must live under an agent or orchestration tier in a config folder.
+   - Do not hardcode endpoints, model deployments, API keys, tenant IDs, role mappings, SharePoint URLs, GitHub orgs, ADO orgs, or APIM routes in business logic.
+
+2. Use APIM as the gateway for Foundry APIs.
+   - All Foundry calls must go through APIM endpoints.
+   - Backend should never call Foundry directly unless a local development config explicitly allows it.
+   - Add config for APIM base URL, subscription key or managed identity mode, route names, timeout, retry policy, throttling policy name, and correlation ID header.
+   - Add logging hooks for prompt ID, agent ID, model name, token estimate, project ID, user ID, approval gate ID, and workflow run ID.
+
+3. Make every agent model configurable.
+   Add an agent configuration file that supports:
+   - agentId
+   - displayName
+   - lifecycleStage
+   - modelDeploymentName
+   - modelProvider
+   - apimRoute
+   - toolsAllowed
+   - mcpServersAllowed
+   - maxInputTokens
+   - maxOutputTokens
+   - temperature
+   - requiresHumanApproval
+   - approvalRole
+   - guardrails
+   - enabled
+
+Specialized agents to implement:
+- Requirements Agent
+  - Reads requirements and UX mockups from SharePoint, OneDrive, or local disk.
+  - Summarizes requirements.
+  - Generates Epics, Features, User Stories, Tasks, acceptance criteria, and risks.
+  - Uses Azure DevOps APIs or Azure DevOps MCP server.
+
+- Architecture Advisor Agent
+  - Produces architecture recommendations, design notes, threat model placeholders, API contracts, and implementation plan.
+  - Publishes approved design artifacts to SharePoint using configured SharePoint connector/API.
+
+- Code Generation Agent
+  - Creates or updates source code repos.
+  - Uses GitHub APIs, GitHub Copilot-compatible workflows, or MCP server patterns.
+  - Opens branches and pull requests, but must not merge without human approval.
+
+- Test Automation Agent
+  - Generates unit, integration, security, and user acceptance test plans.
+  - Can create test tasks or pipeline steps.
+  - Requires QA or Admin approval before results are marked accepted.
+
+- DevOps / Release Agent
+  - Generates or updates pipelines.
+  - Provisions Azure resources using configured IaC templates.
+  - Must require human approval before provisioning or deployment.
+  - Uses managed identity where possible and never stores secrets in code.
+
+- Security and Compliance Agent
+  - Reviews generated work items, code, dependencies, and infrastructure plans.
+  - Produces findings, risk severity, and remediation tasks.
+  - Blocks promotion if required approvals or security checks are missing.
+
+- Knowledge Assistant
+  - Searches project docs, SharePoint/OneDrive material, wiki/docs, prior decisions, and operational notes.
+  - Provides citations or source references where possible.
+
+Human-in-the-loop requirements:
+Implement explicit approval gates across the workflow:
+1. Plan and scope approval
+2. Architecture and design approval
+3. Backlog generation approval
+4. Code generation approval
+5. Pull request review approval
+6. Security review approval
+7. Test acceptance approval
+8. Release and deployment approval
+9. Operate and improve approval
+
+For each approval gate:
+- Store approver, role, timestamp, decision, comments, previous state, next state, and artifact references.
+- Support approve, reject, request changes, and delegate.
+- No agent can advance a workflow stage if requiresHumanApproval is true and approval is missing.
+- Show approval status clearly in the UI.
+- Add guardrails in both UI and API so bypassing the UI cannot bypass approvals.
+- Add audit logs for all approvals and agent actions.
+
+Authentication and authorization:
+Implement both Microsoft Entra ID and OTP authentication.
+
+Entra ID domain:
+@MngEnvMCAP829495.onmicrosoft.com
+
+Initial App Owners:
+- admin@MngEnvMCAP829495.onmicrosoft.com
+  - authentication method: Entra ID
+- myaacoub@MngEnvMCAP829495.onmicrosoft.com
+  - authentication method: Entra ID
+- myaacoub@microsoft.com
+  - authentication method: OTP
+
+Roles:
+- Business User
+- IT User
+- Admin
+- App Owner
+
+Authorization rules:
+- Admin can access all application functionality except user maintenance if that is reserved separately.
+- App Owner can do everything Admin can do and can also maintain users.
+- App Owner can add, edit, remove users and set each user's authentication method to OTP or Entra ID.
+- Business User can create projects, upload or connect requirements and UX mockups, review outputs, and approve business gates.
+- IT User can review technical design, repos, pipelines, Azure provisioning plans, tests, and deployment gates.
+- Enforce role authorization on API routes and UI navigation.
+- Hide unauthorized menus and also block unauthorized API calls server-side.
+
+UI requirements:
+Use Angular, TypeScript, and Ionic.
+
+Header:
+- Add Microsoft logo in the header.
+- Add this identity text in the header or footer:
+  Michael Yaacoub | Sr Solution Engineer
+- Add LinkedIn link:
+  https://www.linkedin.com/in/michael-yaacoub-7a46436/
+- Add GitHub handle/link:
+  csdmichael
+
+Responsive layouts:
+- Phone: bottom tabs or compact menu, stacked cards, simplified workflow timeline.
+- Tablet: split layout with left nav and content panel.
+- Web: full left navigation, header, dashboard cards, workflow canvas, and detail panels.
+
+Main left navigation sections:
+1. Agentic SDLC Operations
+2. Admin
+3. Documentation
+
+Agentic SDLC Operations:
+- New Project
+- Existing Projects
+- Workflow Runs
+- Human Approval Queue
+- Agent Activity
+- Audit Trail
+
+New Project flow:
+- Project name
+- Description
+- Business owner
+- IT owner
+- Select source for requirements and UX mockups:
+  - SharePoint
+  - OneDrive
+  - Local disk upload
+- Choose Azure DevOps organization and project
+- Choose or create GitHub repository
+- Select target environment:
+  - Dev
+  - Test
+  - UAT
+  - Prod
+- Select lifecycle agents to run
+- Confirm model configuration per agent
+- Submit for Plan and Scope approval before agents generate downstream changes
+
+Existing Project flow:
+- Show saved projects
+- Show current lifecycle stage
+- Show pending approvals
+- Show backlog items
+- Show generated artifacts
+- Show repo and pipeline links
+- Show agent runs and logs
+- Allow resume, rerun stage, request changes, or archive
+
+Admin section:
+- User management
+- Role management
+- Authentication method management
+- Agent configuration
+- Model configuration
+- APIM configuration
+- ADO/GitHub/SharePoint connector configuration
+- Guardrail policy configuration
+- Audit settings
+
+Documentation section:
+- Overview
+- Architecture
+- Human-in-the-loop model
+- Agent responsibilities
+- Configuration guide
+- Security and guardrails
+- Troubleshooting
+
+Data model:
+Create entities or interfaces for:
+- User
+- Role
+- AuthenticationMethod
+- Project
+- ProjectSource
+- WorkflowRun
+- WorkflowStage
+- AgentDefinition
+- AgentRun
+- AgentToolCall
+- ApprovalGate
+- ApprovalDecision
+- Artifact
+- AdoWorkItemMapping
+- GitHubRepoMapping
+- PipelineMapping
+- GuardrailPolicy
+- AuditLog
+- AppConfiguration
+
+Workflow states:
+- Draft
+- Submitted
+- AwaitingApproval
+- Approved
+- Rejected
+- ChangesRequested
+- Running
+- Completed
+- Failed
+- Blocked
+- Archived
+
+Implementation expectations:
+- Create clean folder structure.
+- Add strongly typed interfaces/models.
+- Add services for auth, roles, projects, agents, approvals, audit, configuration, ADO, GitHub, SharePoint, OneDrive/local upload, and APIM/Foundry calls.
+- Add route guards in Angular.
+- Add API middleware for authentication, authorization, correlation ID, audit logging, and error handling.
+- Add mock/local implementations where real cloud credentials are not available.
+- Make all external integrations configurable and safe by default.
+- Add TODO comments only where secrets or tenant-specific values must be supplied.
+- Add sample config files with placeholder values.
+- Add README documentation with setup and run instructions.
+
+Security requirements:
+- Do not commit secrets.
+- Use environment variables or secure configuration.
+- Support managed identity for Azure resources where possible.
+- Validate all uploaded file types and sizes.
+- Add audit logging for all user actions, agent actions, and approval decisions.
+- Enforce role checks on both UI and API.
+- Require human approval before work item creation, repo creation, pipeline changes, SharePoint publishing, Azure resource provisioning, or deployment.
+- Add content safety and guardrail policy checks before and after agent outputs.
+- Add correlation IDs across UI, API, APIM, agent calls, and audit logs.
+
+Deliverables:
+1. Implement the application skeleton if missing.
+2. Add the Angular/Ionic responsive UI.
+3. Add authentication and role-based access control.
+4. Add project creation and existing project flows.
+5. Add agent configuration and model configuration.
+6. Add APIM gateway configuration layer for Foundry APIs.
+7. Add human approval gate framework.
+8. Add mock services for ADO, GitHub, SharePoint, OneDrive, local disk, Foundry/APIM, and Azure provisioning if live credentials are not available.
+9. Add admin user management for App Owner.
+10. Add documentation pages and README.
+11. Add sample configuration files.
+12. Add unit tests for authorization, approval gate enforcement, and workflow state transitions.
+
+Start by inspecting the current repo structure and the local reference project:
+C:\Projects\Fabric\Fabric-IQ-Ontology-Parts-Shortages
+
+Then propose the file changes, create the folder structure, and implement the first working vertical slice:
+- Login
+- Role-based shell
+- Responsive layout
+- App Owner users seeded from config
+- New Project wizard
+- Agent configuration view
+- Approval gate enforcement
+- Mock Foundry/APIM agent run
+- Audit log entry
+
+After the vertical slice works, continue with integrations and advanced workflow stages.
+
+Azure Resources:
+
+- Subscription: 86b37969-9445-49cf-b03f-d8866235171c
+- Resource Group: ai-myaacoub
+- APIM Url: https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.ApiManagement/service/ai-gateway-apim-poc-my/apim-apis
+- Foundry: https://002-ai-poc-private.services.ai.azure.com/api/projects/proj-default
+- Cosmos DB: https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.DocumentDB/databaseAccounts/cosmos-fabriciq-demo-01/DataExplorerBlade
+- App Service Plan for UI and API: Create new as B2
+- Email service to send otp and emails: https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.Communication/EmailServices/fabriciq-shortages-email-b3/resourceOverviewId
+
+Add licence file MIT for Michael Yaacoub @ Microsoft
+Add documentation attached under docs and add readme with TOC including attached architecture diagram displayed in readme in early sections and dataflow diagram attached also
+build git workflows by component (ui, api, etc) to deploy to azure based on modified component only

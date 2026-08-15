@@ -1,0 +1,66 @@
+/* Global styles for the Agentic SDLC UI. */
+:root {
+  --ion-color-primary: #0f4c81;
+  --ion-color-primary-rgb: 15, 76, 129;
+  --ms-purple: #5c2d91;
+  --app-max-width: 1400px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.page-container {
+  max-width: var(--app-max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.card-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.muted {
+  color: var(--ion-color-medium);
+  font-size: 0.85rem;
+}
+
+.state-badge {
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+.identity-footer {
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 8px 12px;
+  color: var(--ion-color-medium);
+
+  a {
+    color: var(--ion-color-primary);
+    text-decoration: none;
+    margin: 0 6px;
+  }
+}
+
+.workflow-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workflow-timeline .stage {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--ion-color-step-200, #ddd);
+  font-size: 0.8rem;
+}

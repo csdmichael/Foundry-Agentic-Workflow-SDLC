@@ -1,0 +1,54 @@
+<h1>User Management</h1>
+<p class="muted">App Owner only. Add or edit users and set each user's authentication method.</p>
+@if (error()) { <ion-text color="danger"><p>{{ error() }}</p></ion-text> }
+
+<ion-card>
+  <ion-card-header><ion-card-title>Add / edit user</ion-card-title></ion-card-header>
+  <ion-card-content>
+    <ion-list>
+      <ion-item>
+        <ion-label position="stacked">Name</ion-label>
+        <ion-input [(ngModel)]="form.name"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Email</ion-label>
+        <ion-input type="email" [(ngModel)]="form.email"></ion-input>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Role</ion-label>
+        <ion-select [(ngModel)]="form.role" interface="popover">
+          @for (r of roles; track r) { <ion-select-option [value]="r">{{ roleLabels[r] }}</ion-select-option> }
+        </ion-select>
+      </ion-item>
+      <ion-item>
+        <ion-label position="stacked">Authentication method</ion-label>
+        <ion-select [(ngModel)]="form.provider" interface="popover">
+          @for (p of providers; track p.value) { <ion-select-option [value]="p.value">{{ p.label }}</ion-select-option> }
+        </ion-select>
+      </ion-item>
+    </ion-list>
+    <ion-button class="ion-margin-top" (click)="save()">
+      <ion-icon slot="start" name="save-outline"></ion-icon>Save user
+    </ion-button>
+  </ion-card-content>
+</ion-card>
+
+<ion-card>
+  <ion-card-header><ion-card-title>Directory</ion-card-title></ion-card-header>
+  <ion-card-content>
+    <ion-list>
+      @for (u of users(); track u.id) {
+        <ion-item lines="full">
+          <ion-label>
+            <h3>{{ u.name }}</h3>
+            <p class="muted">{{ u.email }}</p>
+          </ion-label>
+          <ion-badge slot="end" color="medium">{{ roleLabels[u.role] }}</ion-badge>
+          <ion-badge slot="end">{{ u.authenticationMethod }}</ion-badge>
+          <ion-button slot="end" size="small" fill="clear" (click)="edit(u)">Edit</ion-button>
+          <ion-button slot="end" size="small" fill="clear" color="danger" (click)="remove(u)">Remove</ion-button>
+        </ion-item>
+      }
+    </ion-list>
+  </ion-card-content>
+</ion-card>

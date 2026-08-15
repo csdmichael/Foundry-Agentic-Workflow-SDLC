@@ -1,0 +1,128 @@
+<h1>New Project</h1>
+<ion-progress-bar [value]="progress()"></ion-progress-bar>
+<p class="muted">Step {{ step() }} of {{ totalSteps }}</p>
+
+@if (error()) {
+  <ion-text color="danger"><p>{{ error() }}</p></ion-text>
+}
+
+<ion-card>
+  <ion-card-content>
+    @switch (step()) {
+      @case (1) {
+        <ion-card-header><ion-card-title>Project details</ion-card-title></ion-card-header>
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">Project name *</ion-label>
+            <ion-input [(ngModel)]="model.name" placeholder="Customer Onboarding Portal"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Description</ion-label>
+            <ion-textarea [(ngModel)]="model.description" autoGrow rows="3"></ion-textarea>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Business owner *</ion-label>
+            <ion-input [(ngModel)]="model.businessOwner" placeholder="name@company.com"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">IT owner</ion-label>
+            <ion-input [(ngModel)]="model.itOwner" placeholder="name@company.com"></ion-input>
+          </ion-item>
+        </ion-list>
+      }
+      @case (2) {
+        <ion-card-header><ion-card-title>Requirements & UX mockups</ion-card-title></ion-card-header>
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">Source</ion-label>
+            <ion-select [(ngModel)]="model.sourceKind" interface="popover">
+              @for (s of sourceKinds; track s.value) {
+                <ion-select-option [value]="s.value">{{ s.label }}</ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">
+              {{ model.sourceKind === 'local-upload' ? 'Upload note (files attach after creation)' : 'Source URL / path' }}
+            </ion-label>
+            <ion-input [(ngModel)]="model.sourceReference"
+              placeholder="https://tenant.sharepoint.com/sites/... or /path"></ion-input>
+          </ion-item>
+        </ion-list>
+        <ion-note color="medium">Allowed types and size limits are enforced by the API on upload.</ion-note>
+      }
+      @case (3) {
+        <ion-card-header><ion-card-title>DevOps & repository</ion-card-title></ion-card-header>
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">Azure DevOps organization</ion-label>
+            <ion-input [(ngModel)]="model.adoOrganization" placeholder="https://dev.azure.com/your-org"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Azure DevOps project</ion-label>
+            <ion-input [(ngModel)]="model.adoProject" placeholder="AgenticSDLC"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">GitHub repository</ion-label>
+            <ion-input [(ngModel)]="model.gitHubRepo" placeholder="org/repo or new repo name"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Target environment</ion-label>
+            <ion-select [(ngModel)]="model.targetEnvironment" interface="popover">
+              @for (e of environments; track e) {
+                <ion-select-option [value]="e">{{ e }}</ion-select-option>
+              }
+            </ion-select>
+          </ion-item>
+        </ion-list>
+      }
+      @case (4) {
+        <ion-card-header><ion-card-title>Lifecycle agents</ion-card-title></ion-card-header>
+        <p class="muted">Select which specialized Foundry agents run in this project. Each agent uses the model shown; approval-gated agents will pause for a human decision.</p>
+        <ion-list>
+          @for (agent of agents(); track agent.agentId) {
+            <ion-item>
+              <ion-checkbox slot="start"
+                [checked]="selectedAgents.has(agent.agentId)"
+                (ionChange)="toggleAgent(agent.agentId, $event.detail.checked)"></ion-checkbox>
+              <ion-label>
+                <h3>{{ agent.displayName }}</h3>
+                <p class="muted">
+                  {{ agent.lifecycleStage }} · {{ agent.modelDeploymentName }}
+                  @if (agent.requiresHumanApproval) { · <ion-chip color="warning">approval: {{ agent.approvalRole }}</ion-chip> }
+                </p>
+              </ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      }
+      @case (5) {
+        <ion-card-header><ion-card-title>Confirm & submit</ion-card-title></ion-card-header>
+        <ion-list>
+          <ion-item><ion-label>Name</ion-label><ion-note slot="end">{{ model.name }}</ion-note></ion-item>
+          <ion-item><ion-label>Business owner</ion-label><ion-note slot="end">{{ model.businessOwner }}</ion-note></ion-item>
+          <ion-item><ion-label>Source</ion-label><ion-note slot="end">{{ model.sourceKind }}</ion-note></ion-item>
+          <ion-item><ion-label>ADO</ion-label><ion-note slot="end">{{ model.adoProject || '—' }}</ion-note></ion-item>
+          <ion-item><ion-label>GitHub</ion-label><ion-note slot="end">{{ model.gitHubRepo || '—' }}</ion-note></ion-item>
+          <ion-item><ion-label>Environment</ion-label><ion-note slot="end">{{ model.targetEnvironment }}</ion-note></ion-item>
+          <ion-item><ion-label>Agents selected</ion-label><ion-note slot="end">{{ selectedAgents.size }}</ion-note></ion-item>
+        </ion-list>
+        <ion-note color="primary">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Submitting creates the project and opens the <strong>Plan and Scope</strong> approval gate. Agents will not act until it is approved.
+        </ion-note>
+      }
+    }
+
+    <div class="ion-margin-top" style="display:flex;gap:8px;justify-content:space-between;">
+      <ion-button fill="outline" (click)="prev()" [disabled]="step() === 1">Back</ion-button>
+      @if (step() < totalSteps) {
+        <ion-button (click)="next()" [disabled]="!canContinue()">Continue</ion-button>
+      } @else {
+        <ion-button color="success" (click)="submit()" [disabled]="saving()">
+          {{ saving() ? 'Submitting…' : 'Create & submit for approval' }}
+        </ion-button>
+      }
+    </div>
+  </ion-card-content>
+</ion-card>

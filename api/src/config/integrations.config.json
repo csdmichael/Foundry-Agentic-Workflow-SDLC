@@ -1,0 +1,42 @@
+{
+  "$comment": "Integration connector configuration (non-secret). Tokens/keys come from env vars or managed identity.",
+  "azureDevOps": {
+    "enabled": true,
+    "useMock": true,
+    "organizationUrl": "https://dev.azure.com/YOUR-ADO-ORG",
+    "defaultProject": "AgenticSDLC",
+    "useMcpServer": false,
+    "mcpServerUrl": ""
+  },
+  "github": {
+    "enabled": true,
+    "useMock": true,
+    "org": "csdmichael",
+    "apiBaseUrl": "https://api.github.com",
+    "useMcpServer": false,
+    "mcpServerUrl": ""
+  },
+  "sharePoint": {
+    "enabled": true,
+    "useMock": true,
+    "siteUrl": "https://YOUR-TENANT.sharepoint.com/sites/AgenticSDLC",
+    "designLibrary": "Design Artifacts"
+  },
+  "oneDrive": {
+    "enabled": true,
+    "useMock": true,
+    "graphBaseUrl": "https://graph.microsoft.com/v1.0"
+  },
+  "localUpload": {
+    "enabled": true,
+    "storageRoot": "api/data/uploads"
+  },
+  "azureProvisioning": {
+    "enabled": true,
+    "useMock": true,
+    "subscriptionId": "86b37969-9445-49cf-b03f-d8866235171c",
+    "resourceGroup": "ai-myaacoub",
+    "iacTemplatePath": "infra/main.bicep",
+    "useManagedIdentity": true
+  }
+}

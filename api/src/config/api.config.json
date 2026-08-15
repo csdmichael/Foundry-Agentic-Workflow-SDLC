@@ -1,0 +1,41 @@
+{
+  "$comment": "API tier configuration (non-secret). Secrets come from env vars. See api/.env.example.",
+  "service": {
+    "name": "agentic-sdlc-api",
+    "port": 8080,
+    "corsAllowedOrigins": [
+      "http://localhost:8100",
+      "http://localhost:4200"
+    ]
+  },
+  "auth": {
+    "internalDomains": ["MngEnvMCAP829495.onmicrosoft.com"],
+    "internal": {
+      "authorityBase": "https://login.microsoftonline.com",
+      "apiScopeName": "access_as_user"
+    },
+    "external": {
+      "otpLength": 6,
+      "otpTtlSeconds": 600,
+      "maxAttemptsPerCode": 5,
+      "maxCodesPerEmailPerHour": 5,
+      "sessionTtlSeconds": 28800,
+      "emailFrom": "no-reply@agentic-sdlc.local",
+      "emailFromName": "Agentic SDLC",
+      "emailSubject": "Your Agentic SDLC verification code"
+    },
+    "jwt": {
+      "issuer": "agentic-sdlc-api",
+      "audience": "agentic-sdlc-ui",
+      "algorithm": "HS256",
+      "accessTokenTtlSeconds": 28800
+    }
+  },
+  "correlation": {
+    "headerName": "x-correlation-id"
+  },
+  "upload": {
+    "maxFileSizeBytes": 26214400,
+    "allowedExtensions": [".pdf", ".docx", ".md", ".txt", ".png", ".jpg", ".jpeg", ".fig", ".json", ".csv"]
+  }
+}

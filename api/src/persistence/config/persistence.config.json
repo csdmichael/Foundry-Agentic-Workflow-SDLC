@@ -1,0 +1,23 @@
+{
+  "$comment": "Persistence (DB) tier configuration. Selects the store. Secrets/keys come from env vars or managed identity — never here.",
+  "provider": "file",
+  "$providerOptions": ["file", "cosmos"],
+  "file": {
+    "dataRoot": "api/data",
+    "$comment": "Local development JSON store. One file per collection."
+  },
+  "cosmos": {
+    "endpoint": "https://cosmos-fabriciq-demo-01.documents.azure.com:443/",
+    "database": "agentic_sdlc",
+    "useManagedIdentity": true,
+    "containers": {
+      "users": { "partitionKey": "/email" },
+      "projects": { "partitionKey": "/id" },
+      "workflowRuns": { "partitionKey": "/projectId" },
+      "agentRuns": { "partitionKey": "/workflowRunId" },
+      "approvalGates": { "partitionKey": "/workflowRunId" },
+      "artifacts": { "partitionKey": "/projectId" },
+      "auditLogs": { "partitionKey": "/day" }
+    }
+  }
+}
