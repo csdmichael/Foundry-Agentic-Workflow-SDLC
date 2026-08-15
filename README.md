@@ -35,13 +35,10 @@ action advances to the next stage.
 
 The platform follows the **AI Foundry–Based Software Factory** reference
 architecture and the **Agentic SDLC: Human Accountability + Agent Execution**
-operating model (source deck:
-[`docs/Microsoft-AI-Stack-for-SDLC.pptx`](docs/Microsoft-AI-Stack-for-SDLC.pptx)).
+operating model (full deck:
+[`docs/Microsoft-AI-Stack-for-SDLC.pdf`](docs/Microsoft-AI-Stack-for-SDLC.pdf)).
 
-<!-- After exporting the deck slides to docs/images/ (see docs/images/README.md),
-     the PNGs below render inline. The Mermaid diagram is the always-available fallback. -->
-![AI Foundry–Based Software Factory Architecture](docs/images/software-factory-architecture.png)
-![Agentic SDLC — Human Accountability + Agent Execution](docs/images/agentic-sdlc-operating-model.png)
+![AI Foundry–Based Software Factory Architecture](docs/Msft-AI-Stack-SDLC-Architecture.png)
 
 ```mermaid
 flowchart TB
@@ -69,6 +66,8 @@ Full diagrams: [docs/architecture.md](docs/architecture.md).
 
 Project intake → approval gate → governed agent action, with guardrails before
 and after every agent output. See [docs/dataflow.md](docs/dataflow.md).
+
+![Agentic SDLC — Human + Agent Data Flow](docs/agentic-sdlc-human-agent-dataflow.png)
 
 ```mermaid
 sequenceDiagram
