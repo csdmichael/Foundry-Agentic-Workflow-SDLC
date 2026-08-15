@@ -8,6 +8,17 @@ api/dist/
 out-tsc/
 .angular/
 
+# Python
+.venv/
+api/.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Deployment artifacts
+*.zip
+.tmp-fic/
+
 # Local persistence / uploads / logs (never commit runtime data)
 api/data/
 *.log

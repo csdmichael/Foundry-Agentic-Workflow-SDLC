@@ -1,4 +1,4 @@
-# Deploys the Node/TypeScript API to Azure App Service — only when API files change.
+# Deploys the Python/FastAPI API to Azure App Service — only when API files change.
 name: Deploy API
 
 on:
@@ -14,9 +14,8 @@ permissions:
   contents: read
 
 env:
-  # TODO: set as a repository variable.
   AZURE_WEBAPP_NAME: ${{ vars.API_WEBAPP_NAME }}
-  NODE_VERSION: '20.x'
+  PYTHON_VERSION: '3.13'
 
 jobs:
   build-test-deploy:
@@ -28,18 +27,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-python@v5
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: api/package-lock.json
+          python-version: ${{ env.PYTHON_VERSION }}
 
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
-
-      - name: Prune dev dependencies
-        run: npm prune --omit=dev
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
 
       - uses: azure/login@v2
         with:
@@ -47,6 +40,8 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      # App Service runs Oryx build (SCM_DO_BUILD_DURING_DEPLOYMENT=true) to install
+      # requirements.txt; startup command is set on the web app (gunicorn + uvicorn worker).
       - uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}

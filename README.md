@@ -13,21 +13,56 @@ action advances to the next stage.
 
 ## Table of contents
 
-1. [Architecture at a glance](#architecture-at-a-glance)
-2. [Data flow](#data-flow)
-3. [Features](#features)
-4. [Technology stack](#technology-stack)
-5. [Repository layout](#repository-layout)
-6. [Quick start (local)](#quick-start-local)
-7. [Authentication & roles](#authentication--roles)
-8. [Human-in-the-loop approval gates](#human-in-the-loop-approval-gates)
-9. [Specialized agents](#specialized-agents)
-10. [Configuration](#configuration)
-11. [Security & guardrails](#security--guardrails)
-12. [Testing](#testing)
-13. [Deployment (CI/CD)](#deployment-cicd)
-14. [Documentation](#documentation)
-15. [License](#license)
+1. [Live deployment](#live-deployment)
+2. [Architecture at a glance](#architecture-at-a-glance)
+3. [Data flow](#data-flow)
+4. [Features](#features)
+5. [Technology stack](#technology-stack)
+6. [Repository layout](#repository-layout)
+7. [Quick start (local)](#quick-start-local)
+8. [Authentication & roles](#authentication--roles)
+9. [Human-in-the-loop approval gates](#human-in-the-loop-approval-gates)
+10. [Specialized agents](#specialized-agents)
+11. [Configuration](#configuration)
+12. [Security & guardrails](#security--guardrails)
+13. [Testing](#testing)
+14. [Deployment (CI/CD)](#deployment-cicd)
+15. [Documentation](#documentation)
+16. [License](#license)
+
+---
+
+## Live deployment
+
+Published to **Azure App Service** (Linux, B2 plan `agentic-sdlc-plan`) in
+resource group **ai-myaacoub** (West US 2), subscription
+`86b37969-9445-49cf-b03f-d8866235171c`. Component-scoped GitHub Actions redeploy
+only the changed tier using Azure **OIDC federated login** (no stored secrets).
+
+| Resource | URL |
+| --- | --- |
+| UI (Angular/Ionic) | <https://agentic-sdlc-ui-my.azurewebsites.net> |
+| API (FastAPI) | <https://agentic-sdlc-api-my.azurewebsites.net> |
+| API health probe | <https://agentic-sdlc-api-my.azurewebsites.net/api/health> |
+| API Swagger / OpenAPI UI | <https://agentic-sdlc-api-my.azurewebsites.net/docs> |
+| API OpenAPI schema (JSON) | <https://agentic-sdlc-api-my.azurewebsites.net/openapi.json> |
+| Foundry agents (project) | <https://002-ai-poc-private.services.ai.azure.com/api/projects/proj-default> |
+
+Azure management (portal) links:
+
+| Resource | Portal |
+| --- | --- |
+| Resource group `ai-myaacoub` | [open](https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/overview) |
+| API web app | [open](https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.Web/sites/agentic-sdlc-api-my/appServices) |
+| UI web app | [open](https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.Web/sites/agentic-sdlc-ui-my/appServices) |
+| APIM gateway `ai-gateway-apim-poc-my` | [open](https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.ApiManagement/service/ai-gateway-apim-poc-my/apim-apis) |
+| Cosmos DB `cosmos-fabriciq-demo-01` | [open](https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.DocumentDB/databaseAccounts/cosmos-fabriciq-demo-01/DataExplorerBlade) |
+| Email (ACS) `fabriciq-shortages-email-b3` | [open](https://portal.azure.com/#@MngEnvMCAP829495.onmicrosoft.com/resource/subscriptions/86b37969-9445-49cf-b03f-d8866235171c/resourceGroups/ai-myaacoub/providers/Microsoft.Communication/EmailServices/fabriciq-shortages-email-b3/resourceOverviewId) |
+
+> The Python API migration is in progress: the published API currently exposes
+> the health probe and Swagger docs. The UI is served as a static SPA — point its
+> `apiBaseUrl` in [`src/app/config/ui.config.ts`](src/app/config/ui.config.ts) at
+> the API host once the remaining endpoints are ported.
 
 ---
 
@@ -109,7 +144,7 @@ sequenceDiagram
 | Layer | Technology |
 | --- | --- |
 | Frontend | Angular 18 (standalone) + Ionic 8, responsive |
-| API | Node.js / TypeScript (Express) |
+| API | Python 3.13 / FastAPI (Uvicorn + Gunicorn) |
 | Persistence | Repository pattern — file store (local dev) / Azure Cosmos DB |
 | Auth | Microsoft Entra ID + email OTP (Azure Communication Services) |
 | Gateway | Azure API Management in front of Azure AI Foundry |
@@ -202,7 +237,7 @@ See [docs/security-and-guardrails.md](docs/security-and-guardrails.md).
 
 ```powershell
 cd api
-npm test    # authorization (RBAC), approval-gate enforcement, workflow state transitions
+python -m pytest -q
 ```
 
 ## Deployment (CI/CD)
