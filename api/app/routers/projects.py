@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
@@ -44,16 +46,17 @@ def archive_project(project_id: str, user: dict = Depends(require("projects.mana
 
 
 @router.post("/{project_id}/agents/{agent_id}/run")
-def run_agent(project_id: str, agent_id: str, body: AgentRunBody, user: dict = Depends(require("agents.run")), corr: str = Depends(correlation_id)):
+def run_agent(project_id: str, agent_id: str, body: Optional[AgentRunBody] = None, user: dict = Depends(require("agents.run")), corr: str = Depends(correlation_id)):
     run = projects_service.get_run_for_project(project_id)
     if not run:
         raise ApiError(409, "Project has no workflow run. Submit it first.")
+    prompt = (body.prompt if body else None) or "Generate outputs for this lifecycle stage."
     agent_run = orchestrator.run_agent(
         {
             "workflowRunId": run["id"],
             "projectId": project_id,
             "agentId": agent_id,
-            "prompt": body.prompt or "Generate outputs for this lifecycle stage.",
+            "prompt": prompt,
         },
         user,
         corr,
