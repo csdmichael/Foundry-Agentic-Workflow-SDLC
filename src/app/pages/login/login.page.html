@@ -1,69 +1,117 @@
-<ion-content class="ion-padding login-bg">
-  <div class="login-wrap">
-    <ion-card class="login-card">
-      <ion-card-header>
-        <div class="brand-row">
-          <img src="assets/microsoft-logo.svg" class="ms-logo-lg" alt="Microsoft" />
-          <span>Microsoft</span>
+<ion-content class="login-content">
+  <div class="auth-shell">
+    <!-- Left brand panel -->
+    <section class="auth-brand">
+      <div class="brand-top">
+        <img src="assets/microsoft-logo.svg" class="ms-logo" alt="Microsoft" />
+        <span class="brand-eyebrow">AGENTIC SDLC</span>
+      </div>
+      <h1 class="brand-title">{{ ui.brand.product }}</h1>
+      <p class="brand-tagline">{{ ui.brand.tagline }}</p>
+      <ul class="brand-features">
+        @for (f of ui.brand.features; track f.title) {
+          <li>
+            <ion-icon [name]="f.icon"></ion-icon>
+            <div>
+              <strong>{{ f.title }}</strong>
+              <span>{{ f.text }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+      <div class="brand-footer">
+        <div>{{ ui.brand.poweredBy }}</div>
+        <div class="identity">
+          {{ ui.identity.name }} | {{ ui.identity.title }} —
+          <a [href]="ui.identity.linkedIn" target="_blank" rel="noopener">LinkedIn</a> ·
+          <a [href]="ui.identity.gitHubUrl" target="_blank" rel="noopener">{{ ui.identity.gitHub }}</a>
         </div>
-        <ion-card-title>{{ ui.brand.product }}</ion-card-title>
-        <ion-card-subtitle>Sign in with Entra ID or a one-time passcode</ion-card-subtitle>
-      </ion-card-header>
+      </div>
+    </section>
 
-      <ion-card-content>
-        @if (error()) {
-          <ion-text color="danger"><p>{{ error() }}</p></ion-text>
-        }
-        @if (info()) {
-          <ion-note color="medium"><p>{{ info() }}</p></ion-note>
-        }
+    <!-- Right sign-in card -->
+    <section class="auth-panel">
+      <div class="auth-card">
+        <h2>Sign in</h2>
+        <p class="auth-sub">
+          Use your Microsoft Entra ID for single sign-on, request a one-time passcode by email, or
+          continue as a guest for read-only access.
+        </p>
+
+        @if (error()) { <div class="msg error">{{ error() }}</div> }
+        @if (info()) { <div class="msg info">{{ info() }}</div> }
 
         @if (step() === 'email') {
-          <ion-item>
-            <ion-label position="stacked">Email</ion-label>
-            <ion-input
-              type="email"
-              [(ngModel)]="email"
-              placeholder="you@company.com"
-              autocomplete="email"
-            ></ion-input>
-          </ion-item>
+          <label class="field-label">Work email</label>
+          <ion-input
+            class="field"
+            fill="outline"
+            type="email"
+            [(ngModel)]="email"
+            placeholder="you@company.com"
+            autocomplete="email"
+            (keyup.enter)="sendCode()"
+          >
+            <ion-icon slot="start" name="mail-outline" aria-hidden="true"></ion-icon>
+          </ion-input>
 
-          <ion-button expand="block" class="ion-margin-top" (click)="sendCode()" [disabled]="loading()">
-            @if (loading()) { <ion-spinner name="dots"></ion-spinner> } @else { Send passcode }
+          <div class="quickfill">
+            <span>Quick fill:</span>
+            @for (q of quickFills; track q.email) {
+              <button type="button" class="pill" (click)="quickFill(q.email)">{{ q.label }}</button>
+            }
+          </div>
+
+          <ion-button expand="block" class="primary-btn" (click)="sendCode()" [disabled]="loading()">
+            @if (loading()) { <ion-spinner name="dots"></ion-spinner> } @else { Continue }
           </ion-button>
 
-          <div class="divider"><span>or</span></div>
+          <div class="or"><span>OR</span></div>
 
-          <ion-button expand="block" fill="outline" (click)="entra()">
+          <ion-button expand="block" fill="outline" class="entra-btn" (click)="entra()">
             <ion-icon slot="start" name="logo-microsoft"></ion-icon>
             Sign in with Microsoft Entra ID
           </ion-button>
-        } @else {
-          <p class="muted">Enter the 6-digit code sent to {{ email }}.</p>
-          <ion-item>
-            <ion-label position="stacked">Verification code</ion-label>
-            <ion-input
-              type="text"
-              inputmode="numeric"
-              maxlength="6"
-              [(ngModel)]="code"
-              placeholder="000000"
-            ></ion-input>
-          </ion-item>
 
-          <ion-button expand="block" class="ion-margin-top" (click)="verify()" [disabled]="loading()">
+          <ion-button expand="block" fill="outline" class="guest-btn" (click)="guest()" [disabled]="guestLoading()">
+            @if (guestLoading()) {
+              <ion-spinner name="dots"></ion-spinner>
+            } @else {
+              <ion-icon slot="start" name="person-outline"></ion-icon>
+              Continue as guest (read-only)
+            }
+          </ion-button>
+          <p class="guest-note">
+            Guests can explore generated artifacts and reference data. They cannot create, edit,
+            approve, or deploy.
+          </p>
+        } @else {
+          <label class="field-label">Verification code</label>
+          <p class="auth-sub">Enter the 6-digit code sent to {{ email }}.</p>
+          <ion-input
+            class="field"
+            fill="outline"
+            type="text"
+            inputmode="numeric"
+            maxlength="6"
+            [(ngModel)]="code"
+            placeholder="000000"
+            (keyup.enter)="verify()"
+          >
+            <ion-icon slot="start" name="keypad-outline" aria-hidden="true"></ion-icon>
+          </ion-input>
+
+          <ion-button expand="block" class="primary-btn" (click)="verify()" [disabled]="loading()">
             @if (loading()) { <ion-spinner name="dots"></ion-spinner> } @else { Verify & continue }
           </ion-button>
           <ion-button expand="block" fill="clear" (click)="reset()">Use a different email</ion-button>
         }
-      </ion-card-content>
-    </ion-card>
 
-    <div class="identity-footer">
-      {{ ui.identity.name }} | {{ ui.identity.title }} —
-      <a [href]="ui.identity.linkedIn" target="_blank" rel="noopener">LinkedIn</a>
-      <a [href]="ui.identity.gitHubUrl" target="_blank" rel="noopener">{{ ui.identity.gitHub }}</a>
-    </div>
+        <div class="auth-foot">
+          <span>Don't have an account?</span>
+          <a [href]="ui.identity.gitHubUrl" target="_blank" rel="noopener">Request access</a>
+        </div>
+      </div>
+    </section>
   </div>
 </ion-content>

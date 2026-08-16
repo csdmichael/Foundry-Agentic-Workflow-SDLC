@@ -1,51 +1,238 @@
-.login-bg {
-  --background: linear-gradient(160deg, #0f4c81 0%, #5c2d91 100%);
+.login-content {
+  --background: #ffffff;
 }
 
-.login-wrap {
+.auth-shell {
   min-height: 100%;
   display: flex;
+}
+
+/* Left brand panel */
+.auth-brand {
+  flex: 1 1 auto;
+  background: radial-gradient(1200px 600px at 18% 8%, #1b5fa8 0%, #0a3d73 45%, #072c54 100%);
+  color: #fff;
+  padding: 56px;
+  display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 26px;
 }
 
-.login-card {
-  width: 100%;
-  max-width: 420px;
-}
-
-.brand-row {
+.brand-top {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+}
+.brand-top .ms-logo {
+  width: 40px;
+  height: 40px;
+}
+.brand-eyebrow {
+  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0.85;
+}
+
+.brand-title {
+  font-size: clamp(2rem, 3.4vw, 3.1rem);
+  font-weight: 800;
+  line-height: 1.05;
+  margin: 0;
+}
+.brand-tagline {
+  font-size: 1.05rem;
+  opacity: 0.9;
+  max-width: 560px;
+  margin: 0;
+}
+
+.brand-features {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 560px;
+}
+.brand-features li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.brand-features ion-icon {
+  font-size: 20px;
+  margin-top: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 8px;
+  border-radius: 10px;
+}
+.brand-features strong {
+  display: block;
+  font-size: 1rem;
+}
+.brand-features span {
+  opacity: 0.82;
+  font-size: 0.9rem;
+}
+
+.brand-footer {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  opacity: 0.78;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.brand-footer a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+/* Right sign-in panel */
+.auth-panel {
+  flex: 0 0 clamp(380px, 34vw, 520px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: #f4f6fb;
+}
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+.auth-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.auth-sub {
+  color: #5a6472;
+  font-size: 0.92rem;
+  margin: 0 0 18px;
+}
+
+.field-label {
+  display: block;
   font-weight: 600;
-  margin-bottom: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+.field {
+  --border-radius: 10px;
+  margin-bottom: 10px;
 }
 
-.ms-logo-lg {
-  width: 22px;
-  height: 22px;
+.quickfill {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 16px;
+  font-size: 0.82rem;
+  color: #5a6472;
+}
+.pill {
+  border: 1px solid #cfe0f5;
+  background: #eef5ff;
+  color: #0a63c9;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.pill:hover {
+  background: #e0eeff;
 }
 
-.divider {
+.primary-btn {
+  --background: #0a63c9;
+  --border-radius: 10px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.entra-btn,
+.guest-btn {
+  --border-radius: 10px;
+  margin-top: 10px;
+}
+.guest-note {
+  color: #8a94a3;
+  font-size: 0.78rem;
+  margin: 10px 2px 0;
+}
+
+.or {
   text-align: center;
+  color: #8a94a3;
   margin: 16px 0;
-  border-top: 1px solid var(--ion-color-step-150, #e0e0e0);
   position: relative;
-
-  span {
-    position: relative;
-    top: -12px;
-    background: var(--ion-background-color, #fff);
-    padding: 0 10px;
-    color: var(--ion-color-medium);
-    font-size: 0.8rem;
-  }
+}
+.or::before,
+.or::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 42%;
+  height: 1px;
+  background: #e2e8f0;
+}
+.or::before {
+  left: 0;
+}
+.or::after {
+  right: 0;
 }
 
-.identity-footer {
-  color: rgba(255, 255, 255, 0.85);
-  a { color: #fff; }
+.auth-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18px;
+  font-size: 0.85rem;
+  color: #5a6472;
+}
+.auth-foot a {
+  color: #0a63c9;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.msg {
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+.msg.error {
+  background: #fde8e8;
+  color: #a11;
+}
+.msg.info {
+  background: #e8f1fd;
+  color: #0a4b8c;
+}
+
+@media (max-width: 860px) {
+  .auth-shell {
+    flex-direction: column;
+  }
+  .auth-brand {
+    padding: 36px 28px;
+    gap: 18px;
+  }
+  .auth-panel {
+    flex: 1 1 auto;
+    background: transparent;
+  }
+  .brand-features {
+    display: none;
+  }
 }

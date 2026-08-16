@@ -59,9 +59,18 @@ export class NewProjectPage implements OnInit {
   constructor(private api: ApiService, private router: Router) {}
 
   async ngOnInit(): Promise<void> {
-    const agents = await this.api.listAgents();
-    this.agents.set(agents.filter((a) => a.enabled));
-    agents.filter((a) => a.enabled).forEach((a) => this.selectedAgents.add(a.agentId));
+    const [agents, defaults] = await Promise.all([
+      this.api.listAgents(),
+      this.api.getProjectDefaults().catch(() => null),
+    ]);
+    const enabled = agents.filter((a) => a.enabled);
+    this.agents.set(enabled);
+    enabled.forEach((a) => this.selectedAgents.add(a.agentId));
+    if (defaults) {
+      this.model.adoOrganization = defaults.adoOrganization;
+      this.model.adoProject = defaults.adoProject;
+      this.model.gitHubRepo = defaults.gitHubOrg ? `${defaults.gitHubOrg}/` : '';
+    }
   }
 
   progress(): number {

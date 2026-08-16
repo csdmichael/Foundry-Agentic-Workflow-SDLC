@@ -50,6 +50,33 @@ export const uiConfig = {
   brand: {
     product: 'Agentic SDLC — Software Factory',
     tenantDomain: 'MngEnvMCAP829495.onmicrosoft.com',
+    tagline:
+      'Orchestrate Azure AI Foundry agents across the software lifecycle — with human approval gates at every stage.',
+    poweredBy: 'Powered by Azure AI Foundry & Azure API Management',
+    features: [
+      {
+        icon: 'sparkles-outline',
+        title: 'Agentic SDLC',
+        text: 'Foundry agents plan, design, build, test, and operate — you stay in control.',
+      },
+      {
+        icon: 'shield-checkmark-outline',
+        title: 'Governed access',
+        text: 'Entra ID for staff, one-time codes for partners, guest read-only for everyone else.',
+      },
+      {
+        icon: 'hand-left-outline',
+        title: 'Human-in-the-loop',
+        text: 'Explicit approval gates before any agent action advances a stage.',
+      },
+    ],
+  },
+
+  auth: {
+    quickFill: [
+      { label: '@MngEnvMCAP829495.onmicrosoft.com', email: 'admin@MngEnvMCAP829495.onmicrosoft.com' },
+      { label: '@microsoft.com', email: 'myaacoub@microsoft.com' },
+    ],
   },
 
   navSections: [
@@ -91,4 +118,5 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   it_user: 'IT User',
   admin: 'Admin',
   app_owner: 'App Owner',
+  guest: 'Guest (read-only)',
 };

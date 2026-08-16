@@ -24,6 +24,18 @@ def capabilities(user: dict = Depends(get_current_user)):
     return {"role": user["role"], "capabilities": capabilities_for(user["role"])}
 
 
+@router.get("/project-defaults")
+def project_defaults(user: dict = Depends(get_current_user)):
+    ado = CONFIG["integrations"]["azureDevOps"]
+    gh = CONFIG["integrations"]["github"]
+    return {
+        "adoOrganization": ado.get("organizationUrl", ""),
+        "adoProject": ado.get("defaultProject", ""),
+        "gitHubOrg": gh.get("org", ""),
+        "gitHubApiBaseUrl": gh.get("apiBaseUrl", ""),
+    }
+
+
 @router.get("/workflow-runs")
 def workflow_runs(user: dict = Depends(require("projects.read"))):
     return projects_service.list_runs()

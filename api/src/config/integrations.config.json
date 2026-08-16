@@ -3,18 +3,21 @@
   "azureDevOps": {
     "enabled": true,
     "useMock": true,
-    "organizationUrl": "https://dev.azure.com/YOUR-ADO-ORG",
+    "organizationUrl": "https://dev.azure.com/csdmichael",
     "defaultProject": "AgenticSDLC",
     "useMcpServer": false,
-    "mcpServerUrl": ""
+    "mcpServerUrl": "",
+    "patEnvVar": "ADO_PAT"
   },
   "github": {
     "enabled": true,
     "useMock": true,
     "org": "csdmichael",
     "apiBaseUrl": "https://api.github.com",
+    "repoBaseUrl": "https://github.com/csdmichael",
     "useMcpServer": false,
-    "mcpServerUrl": ""
+    "mcpServerUrl": "",
+    "patEnvVar": "GITHUB_PAT"
   },
   "sharePoint": {
     "enabled": true,

@@ -22,14 +22,34 @@ import { uiConfig } from '../../config/ui.config';
 })
 export class LoginPage {
   readonly ui = uiConfig;
+  readonly quickFills = uiConfig.auth.quickFill;
   email = '';
   code = '';
   step = signal<'email' | 'code'>('email');
   loading = signal(false);
+  guestLoading = signal(false);
   error = signal<string | null>(null);
   info = signal<string | null>(null);
 
   constructor(private auth: AuthService, private router: Router) {}
+
+  quickFill(email: string): void {
+    this.email = email;
+    this.error.set(null);
+  }
+
+  async guest(): Promise<void> {
+    this.error.set(null);
+    this.guestLoading.set(true);
+    try {
+      await this.auth.loginAsGuest();
+      this.router.navigate(['/dashboard']);
+    } catch (err) {
+      this.error.set(this.messageOf(err));
+    } finally {
+      this.guestLoading.set(false);
+    }
+  }
 
   async sendCode(): Promise<void> {
     this.error.set(null);

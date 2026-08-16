@@ -60,3 +60,25 @@ def test_project_submit_blocks_agent_until_gate_approved():
     allowed = client.post(f"/api/projects/{project['id']}/agents/requirements-agent/run", headers=headers)
     assert allowed.status_code == 201
     assert allowed.json()["state"] == "Completed"
+
+
+def test_guest_login_is_read_only():
+    res = client.post("/api/auth/guest")
+    assert res.status_code == 200
+    body = res.json()
+    assert body["user"]["role"] == "guest"
+    headers = {"Authorization": f"Bearer {body['accessToken']}"}
+    # Guests can read
+    assert client.get("/api/agents", headers=headers).status_code == 200
+    # Guests cannot create
+    assert client.post("/api/projects", json={"name": "Nope"}, headers=headers).status_code == 403
+
+
+def test_project_defaults_expose_configured_org():
+    session = _login("myaacoub@microsoft.com")
+    headers = {"Authorization": f"Bearer {session['token']}"}
+    res = client.get("/api/config/project-defaults", headers=headers)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["adoOrganization"] == "https://dev.azure.com/csdmichael"
+    assert data["gitHubOrg"] == "csdmichael"

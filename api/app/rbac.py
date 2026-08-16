@@ -46,6 +46,12 @@ ROLE_CAPABILITIES: Dict[str, List[str]] = {
         "users.read",
         "users.manage",
     ],
+    # Guest is read-only and is NOT assignable via user management (not in ALL_ROLES).
+    "guest": [
+        "projects.read",
+        "agents.read",
+        "audit.read",
+    ],
 }
 
 

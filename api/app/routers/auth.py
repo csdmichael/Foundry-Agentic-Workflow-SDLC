@@ -54,3 +54,22 @@ def otp_verify(body: OtpVerifyBody, corr: str = Depends(correlation_id)):
 @router.get("/me")
 def me(user: dict = Depends(get_current_user)):
     return {"user": user}
+
+
+@router.post("/guest")
+def guest(corr: str = Depends(correlation_id)):
+    result = security.issue_guest()
+    audit_service.record(
+        actor_type="system",
+        actor=result["user"]["email"],
+        action="auth.guest.start",
+        target_type="auth",
+        target_id=result["user"]["sub"],
+        correlation_id=corr,
+    )
+    return {
+        "accessToken": result["token"],
+        "tokenType": "Bearer",
+        "expiresIn": result["expiresIn"],
+        "user": result["user"],
+    }

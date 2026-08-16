@@ -62,6 +62,16 @@ export class AuthService {
     return res.user;
   }
 
+  /** Guest read-only sign-in — explore generated ontologies/artifacts, no writes. */
+  async loginAsGuest(): Promise<AuthUser> {
+    const res = await firstValueFrom(
+      this.http.post<OtpVerifyResponse>(`${uiConfig.apiBaseUrl}/auth/guest`, {}),
+    );
+    this.persistSession(res.accessToken, res.user);
+    await this.loadCapabilities();
+    return res.user;
+  }
+
   /**
    * Entra ID sign-in. When a UI client ID is configured, integrate MSAL here to
    * acquire an access token for the API scope, then call persistSession() with

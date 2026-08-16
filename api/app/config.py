@@ -56,6 +56,8 @@ CONFIG = {
         "acsConnectionString": env("AUTH_ACS_CONNECTION_STRING"),
         "acsSenderAddress": env("AUTH_ACS_SENDER_ADDRESS"),
         "apimSubscriptionKey": env("APIM_SUBSCRIPTION_KEY"),
+        "adoPat": env("ADO_PAT"),
+        "gitHubPat": env("GITHUB_PAT"),
         "cosmosConnectionString": env("PERSIST_COSMOS_CONNECTION_STRING"),
         "cosmosEndpoint": env("PERSIST_COSMOS_ENDPOINT"),
         "cosmosDatabase": env("PERSIST_COSMOS_DATABASE"),

@@ -130,12 +130,41 @@ def _fallback_user(payload: Dict) -> Dict:
         "id": str(payload.get("sub", email)),
         "email": email,
         "name": str(payload.get("name", email)),
-        "role": "business_user",
+        # Token is signed with our key, so trusting its role claim is safe (needed for guest).
+        "role": str(payload.get("role", "business_user")),
         "provider": "email-otp",
         "authenticationMethod": "OTP",
         "createdAt": now,
         "updatedAt": now,
     }
+
+
+def issue_guest() -> Dict:
+    from .util import new_id
+
+    guest_id = f"guest-{new_id()[:8]}"
+    auth_user = {
+        "sub": guest_id,
+        "email": "guest@guest.local",
+        "name": "Guest (read-only)",
+        "provider": "email-otp",
+        "isInternal": False,
+        "role": "guest",
+    }
+    jwt_cfg = CONFIG["api"]["auth"]["jwt"]
+    expires_in = jwt_cfg["accessTokenTtlSeconds"]
+    payload = {
+        "sub": guest_id,
+        "email": auth_user["email"],
+        "name": auth_user["name"],
+        "role": "guest",
+        "provider": "email-otp",
+        "iss": jwt_cfg["issuer"],
+        "aud": jwt_cfg["audience"],
+        "exp": int(time.time()) + expires_in,
+    }
+    token = jwt.encode(payload, CONFIG["secrets"]["jwtSigningKey"], algorithm="HS256")
+    return {"token": token, "expiresIn": expires_in, "user": auth_user}
 
 
 def verify_bearer(token: str) -> Dict:

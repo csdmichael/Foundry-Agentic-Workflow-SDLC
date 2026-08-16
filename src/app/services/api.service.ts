@@ -87,4 +87,11 @@ export class ApiService {
   getConfig(): Promise<Record<string, unknown>> {
     return firstValueFrom(this.http.get<Record<string, unknown>>(`${this.base}/config`));
   }
+  getProjectDefaults(): Promise<{ adoOrganization: string; adoProject: string; gitHubOrg: string; gitHubApiBaseUrl: string }> {
+    return firstValueFrom(
+      this.http.get<{ adoOrganization: string; adoProject: string; gitHubOrg: string; gitHubApiBaseUrl: string }>(
+        `${this.base}/config/project-defaults`,
+      ),
+    );
+  }
 }

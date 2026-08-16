@@ -2,7 +2,7 @@
  * Shared UI domain models. Mirror the API models (api/src/models). Kept as a
  * separate copy so the UI has no compile-time dependency on the API package.
  */
-export type UserRole = 'business_user' | 'it_user' | 'admin' | 'app_owner';
+export type UserRole = 'business_user' | 'it_user' | 'admin' | 'app_owner' | 'guest';
 export type AuthProvider = 'entra-id' | 'email-otp';
 
 export interface AuthUser {
