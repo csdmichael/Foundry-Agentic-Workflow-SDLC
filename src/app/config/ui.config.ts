@@ -18,8 +18,23 @@ export interface NavSection {
   items: NavItem[];
 }
 
+// Cross-host API base: when the UI is served from its own App Service host, it
+// must call the separately-hosted API. Local dev (localhost) keeps the relative
+// '/api' path so the Angular dev-server proxy handles it.
+const API_HOSTS_BY_UI_HOST: Record<string, string> = {
+  'agentic-sdlc-ui-my.azurewebsites.net': 'https://agentic-sdlc-api-my.azurewebsites.net/api',
+};
+
+function resolveApiBaseUrl(): string {
+  if (typeof window !== 'undefined' && window.location) {
+    const mapped = API_HOSTS_BY_UI_HOST[window.location.hostname];
+    if (mapped) return mapped;
+  }
+  return '/api';
+}
+
 export const uiConfig = {
-  apiBaseUrl: '/api',
+  apiBaseUrl: resolveApiBaseUrl(),
   tokenStorageKey: 'agentic_sdlc_token',
   userStorageKey: 'agentic_sdlc_user',
   correlationHeader: 'x-correlation-id',
