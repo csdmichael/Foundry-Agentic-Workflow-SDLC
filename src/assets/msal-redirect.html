@@ -6,9 +6,8 @@
     <title>Signing in…</title>
   </head>
   <body>
-    <!-- Dedicated MSAL popup/redirect landing page. Intentionally minimal so the
-         Angular SPA does NOT boot here and strip the auth response from the URL;
-         MSAL in the opener reads this page's URL and closes the popup. -->
     <p>Completing sign-in…</p>
+    <script src="msal-redirect-bridge.min.js"></script>
+    <script src="msal-redirect-bootstrap.js"></script>
   </body>
 </html>
