@@ -33,6 +33,7 @@ export class AuthService {
   private readonly _capabilities = signal<string[]>([]);
   private _metaCache?: AuthMeta;
   private msal?: IPublicClientApplication;
+  private entraLogin?: Promise<AuthUser>;
 
   readonly user = this._user.asReadonly();
   readonly capabilities = this._capabilities.asReadonly();
@@ -93,7 +94,17 @@ export class AuthService {
    * the acquired ID token is sent as the Bearer to the API, which validates it
    * against the tenant JWKS and resolves the user's role.
    */
-  async loginWithEntra(loginHint?: string): Promise<AuthUser> {
+  loginWithEntra(loginHint?: string): Promise<AuthUser> {
+    if (this.entraLogin) return this.entraLogin;
+
+    const login = this.performEntraLogin(loginHint);
+    this.entraLogin = login.finally(() => {
+      this.entraLogin = undefined;
+    });
+    return this.entraLogin;
+  }
+
+  private async performEntraLogin(loginHint?: string): Promise<AuthUser> {
     const meta = await this.getMeta();
     if (!meta.entraEnabled || !meta.uiClientId || !meta.tenantId) {
       throw new Error('Entra ID sign-in is not configured. Use Email OTP.');
