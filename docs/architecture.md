@@ -90,3 +90,15 @@ All Azure AI Foundry calls route through Azure API Management. The backend never
 calls Foundry directly except when `FOUNDRY_ALLOW_DIRECT=1` is set for local
 development. Every call logs prompt ID, agent ID, model name, token estimate,
 project ID, user ID, approval gate ID, workflow run ID, and correlation ID.
+
+## Microsoft Agent Framework execution model
+
+The API uses `agent-framework-core` to build a stable three-executor graph for
+every agent action: approval, APIM-backed model execution, and governed external
+integration. The approval executor emits a typed `RequestInfo` event when its
+configured `approvalGateName` is not approved. File checkpoint storage preserves
+pending requests and executor state under the configured persistence root.
+
+Agent identities are stable configuration-derived IDs so a checkpoint can be
+rehydrated with the same graph topology. SharePoint, Azure DevOps, GitHub, test
+plan, and automation side effects occur only downstream of the approval executor.

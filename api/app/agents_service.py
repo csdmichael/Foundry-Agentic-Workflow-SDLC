@@ -20,6 +20,7 @@ def _with_defaults(raw: Dict) -> Dict:
         "maxOutputTokens": raw.get("maxOutputTokens", d.get("maxOutputTokens")),
         "temperature": raw.get("temperature", d.get("temperature")),
         "requiresHumanApproval": raw.get("requiresHumanApproval", True),
+        "approvalGateName": raw.get("approvalGateName"),
         "approvalRole": raw.get("approvalRole", "admin"),
         "guardrails": raw.get("guardrails", []),
         "enabled": raw.get("enabled", True),

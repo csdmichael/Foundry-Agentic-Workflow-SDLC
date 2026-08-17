@@ -68,6 +68,16 @@ def is_stage_approved(workflow_run_id: str, lifecycle_stage: str) -> bool:
     return (not primary.get("requiresHumanApproval")) or primary.get("state") == "Approved"
 
 
+def is_agent_approved(workflow_run_id: str, agent: Dict) -> bool:
+    gate_name = agent.get("approvalGateName")
+    if not gate_name:
+        return is_stage_approved(workflow_run_id, agent["lifecycleStage"])
+    gate = next((item for item in list_for_run(workflow_run_id) if item.get("name") == gate_name), None)
+    if not gate:
+        return True
+    return (not gate.get("requiresHumanApproval")) or gate.get("state") == "Approved"
+
+
 def decide(gate_id: str, body: Dict, user: Dict, correlation_id: str) -> Dict:
     gate = _repo().get_by_id(gate_id)
     if not gate:

@@ -22,8 +22,11 @@
   "sharePoint": {
     "enabled": true,
     "useMock": true,
-    "siteUrl": "https://YOUR-TENANT.sharepoint.com/sites/AgenticSDLC",
-    "designLibrary": "Design Artifacts"
+    "siteUrl": "https://microsoft.sharepoint.com/teams/ManufacturingMobility199",
+    "projectsFolderUrl": "https://microsoft.sharepoint.com/teams/ManufacturingMobility199/Shared Documents/PODs/POD-27/Technology/SDLC Agentic Workflow/Projects",
+    "projectsFolderPath": "PODs/POD-27/Technology/SDLC Agentic Workflow/Projects",
+    "designLibrary": "Shared Documents",
+    "useManagedIdentity": true
   },
   "oneDrive": {
     "enabled": true,
@@ -33,6 +36,15 @@
   "localUpload": {
     "enabled": true,
     "storageRoot": "api/data/uploads"
+  },
+  "testAutomation": {
+    "enabled": true,
+    "useMock": true,
+    "defaultRunner": "azure-pipelines",
+    "allowedRunners": ["azure-pipelines", "github-actions"],
+    "azurePipelineId": 0,
+    "githubWorkflow": "ci.yml",
+    "githubRef": "main"
   },
   "azureProvisioning": {
     "enabled": true,

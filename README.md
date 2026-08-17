@@ -16,19 +16,21 @@ action advances to the next stage.
 1. [Live deployment](#live-deployment)
 2. [Architecture at a glance](#architecture-at-a-glance)
 3. [Data flow](#data-flow)
-4. [Features](#features)
-5. [Technology stack](#technology-stack)
-6. [Repository layout](#repository-layout)
-7. [Quick start (local)](#quick-start-local)
-8. [Authentication & roles](#authentication--roles)
-9. [Human-in-the-loop approval gates](#human-in-the-loop-approval-gates)
-10. [Specialized agents](#specialized-agents)
-11. [Configuration](#configuration)
-12. [Security & guardrails](#security--guardrails)
-13. [Testing](#testing)
-14. [Deployment (CI/CD)](#deployment-cicd)
-15. [Documentation](#documentation)
-16. [License](#license)
+4. [Agent Framework workflow](#agent-framework-workflow)
+5. [Features](#features)
+6. [Technology stack](#technology-stack)
+7. [Repository layout](#repository-layout)
+8. [Quick start (local)](#quick-start-local)
+9. [Authentication & roles](#authentication--roles)
+10. [Human-in-the-loop approval gates](#human-in-the-loop-approval-gates)
+11. [Specialized agents](#specialized-agents)
+12. [Configuration](#configuration)
+13. [Security & guardrails](#security--guardrails)
+14. [Testing](#testing)
+15. [Deployment (CI/CD)](#deployment-cicd)
+16. [Documentation](#documentation)
+17. [References](#references)
+18. [License](#license)
 
 ---
 
@@ -124,6 +126,27 @@ sequenceDiagram
   API-->>UI: Agent run Completed + artifact
 ```
 
+  ## Agent Framework workflow
+
+  Each governed action runs as a Microsoft Agent Framework graph implemented in
+  [`api/app/agent_workflow.py`](api/app/agent_workflow.py):
+
+  ```mermaid
+  flowchart LR
+    I[Project + agent request] --> H[Approval executor]
+    H -->|approved| A[APIM agent executor]
+    H -->|missing approval| R[RequestInfo event + checkpoint]
+    A --> G[Guardrails + APIM to Foundry]
+    G --> X[Governed integration executor]
+    X --> O[Artifact + audit + external references]
+  ```
+
+  The approval executor uses Agent Framework request/response semantics. Pending
+  requests and graph state are checkpointed under the configured persistence root.
+  The HTTP API preserves its non-bypassable `403` contract until the named gate is
+  approved. Model execution remains behind APIM; the framework does not introduce
+  a direct Foundry path.
+
 ## Features
 
 - Responsive UI (phone / tablet / web) with role-aware navigation.
@@ -134,8 +157,8 @@ sequenceDiagram
 - **Configurable agents** — model, APIM route, tools, MCP servers, guardrails,
   token limits, and approval requirements are all data-driven.
 - **APIM gateway layer** in front of Foundry with full audit logging.
-- **Mock services** for ADO, GitHub, SharePoint, OneDrive, local disk,
-  Foundry/APIM, and Azure provisioning so it runs with no cloud credentials.
+- **Mock-safe and live connectors** for ADO, GitHub, SharePoint, test automation,
+  OneDrive, local disk, Foundry/APIM, and Azure provisioning.
 - **Audit trail** for every user, agent, and approval action.
 - App Owner **user management** (roles + authentication method).
 
@@ -158,27 +181,28 @@ Foundry-Agentic-Workflow-SDLC/
 │  └─ app/
 │     ├─ config/            # UI tier config
 │     ├─ models/  services/  guards/  shell/  pages/
-├─ api/                      # Node/TypeScript API
-│  └─ src/
+├─ api/                      # FastAPI/Python API
+│  ├─ app/                  # Routes, services, Agent Framework workflow
+│  ├─ tests/                # Python API tests
+│  └─ src/                  # Shared tier config and legacy TS reference
 │     ├─ config/            # API tier config (+ APIM, integrations, guardrails)
 │     ├─ persistence/config # DB tier config
-│     ├─ agents/config      # Agent orchestration tier config
-│     ├─ middleware/  routes/  services/  models/
-│     └─ __tests__/
+│     └─ agents/config      # Agent orchestration tier config
 ├─ .github/workflows/        # Component-scoped CI/CD (deploy only what changed)
 └─ docs/                     # Architecture, data flow, config, security, troubleshooting
 ```
 
 ## Quick start (local)
 
-Prerequisites: Node.js 20+.
+Prerequisites: Python 3.13+ and Node.js 20+.
 
 ```powershell
 # 1) API
 cd api
-npm install
-Copy-Item .env.example .env      # dev defaults: OTP bypass on, file persistence
-npm run dev                       # http://localhost:8080
+python -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+Copy-Item .env.example .env
+.venv\Scripts\python -m uvicorn app.main:app --reload --port 8080
 
 # 2) UI (new terminal, repo root)
 npm install
@@ -215,11 +239,23 @@ previous/next state, and artifact references.
 
 ## Specialized agents
 
-Requirements · Architecture Advisor · Code Generation · Test Automation ·
-DevOps / Release · Security & Compliance · Knowledge Assistant. Each is
+Requirements · Planning · Architecture Advisor · Code Generation · Test
+Planning · Testing · Test Automation · DevOps / Release · Security & Compliance
+· Knowledge Assistant. Each is
 configured in
 [`api/src/agents/config/agents.config.json`](api/src/agents/config/agents.config.json)
 and editable in **Admin ▸ Agent Configuration**.
+
+Configured governed destinations:
+
+- Requirements assets: a project-named folder below the Manufacturing & Mobility
+  SharePoint `Projects` folder.
+- Planning output: an Azure DevOps project in `https://dev.azure.com/csdmichael`
+  with Epic → Feature → User Story → Task hierarchy.
+- Coding output: a private repository in the `csdmichael` GitHub organization;
+  generated output is committed but never auto-merged.
+- Test planning and execution: Azure Test Plans/test cases, then Azure Pipelines
+  or GitHub Actions according to `testAutomation.defaultRunner`.
 
 ## Configuration
 
@@ -261,6 +297,11 @@ Set repository variables `UI_WEBAPP_NAME` / `API_WEBAPP_NAME` and secrets
 | Configuration guide | [docs/configuration-guide.md](docs/configuration-guide.md) |
 | Security & guardrails | [docs/security-and-guardrails.md](docs/security-and-guardrails.md) |
 | Troubleshooting | [docs/troubleshooting.md](docs/troubleshooting.md) |
+
+## References
+
+- [Agents in Workflows | Microsoft Learn](https://learn.microsoft.com/en-us/agent-framework/workflows/agents-in-workflows?pivots=programming-language-csharp)
+- [Microsoft Multi-Agent Custom Automation Engine Solution Accelerator](https://github.com/microsoft/Multi-Agent-Custom-Automation-Engine-Solution-Accelerator)
 
 ## License
 

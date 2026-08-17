@@ -60,6 +60,74 @@ def test_project_submit_blocks_agent_until_gate_approved():
     allowed = client.post(f"/api/projects/{project['id']}/agents/requirements-agent/run", headers=headers)
     assert allowed.status_code == 201
     assert allowed.json()["state"] == "Completed"
+    sharepoint_call = allowed.json()["toolCalls"][0]
+    assert sharepoint_call["type"] == "sharepoint-asset"
+    assert "Test%20Project/requirements-analysis.md" in sharepoint_call["assetUrl"]
+
+
+def test_planning_agent_requires_backlog_gate_and_creates_ado_hierarchy():
+    session = _login("myaacoub@microsoft.com")
+    headers = {"Authorization": f"Bearer {session['token']}"}
+    project = client.post(
+        "/api/projects",
+        json={"name": "Mobility Platform", "adoProject": "Mobility-Platform"},
+        headers=headers,
+    ).json()
+    run = client.post(f"/api/projects/{project['id']}/submit", headers=headers).json()
+    gates = client.get(f"/api/approvals/run/{run['id']}", headers=headers).json()
+
+    plan_gate = next(g for g in gates if g["name"] == "Plan and Scope Approval")
+    client.post(f"/api/approvals/{plan_gate['id']}/decision", json={"decision": "approve"}, headers=headers)
+    blocked = client.post(f"/api/projects/{project['id']}/agents/planning-agent/run", headers=headers)
+    assert blocked.status_code == 403
+
+    backlog_gate = next(g for g in gates if g["name"] == "Backlog Generation Approval")
+    client.post(f"/api/approvals/{backlog_gate['id']}/decision", json={"decision": "approve"}, headers=headers)
+    allowed = client.post(f"/api/projects/{project['id']}/agents/planning-agent/run", headers=headers)
+    assert allowed.status_code == 201
+    backlog = allowed.json()["toolCalls"][0]
+    assert backlog["type"] == "ado-backlog"
+    assert backlog["projectUrl"].endswith("/Mobility-Platform")
+    assert [item["type"] for item in backlog["workItems"]] == ["Epic", "Feature", "User Story", "Task"]
+    assert backlog["workItems"][1]["parentExternalId"] == backlog["workItems"][0]["externalId"]
+
+
+def test_code_and_test_agents_create_governed_external_actions():
+    session = _login("myaacoub@microsoft.com")
+    headers = {"Authorization": f"Bearer {session['token']}"}
+    project = client.post(
+        "/api/projects",
+        json={"name": "Factory App", "adoProject": "Factory-App", "gitHubRepo": "factory-app"},
+        headers=headers,
+    ).json()
+    run = client.post(f"/api/projects/{project['id']}/submit", headers=headers).json()
+    gates = client.get(f"/api/approvals/run/{run['id']}", headers=headers).json()
+
+    for gate_name in ("Code Generation Approval", "Test Acceptance Approval"):
+        gate = next(g for g in gates if g["name"] == gate_name)
+        decision = client.post(
+            f"/api/approvals/{gate['id']}/decision",
+            json={"decision": "approve"},
+            headers=headers,
+        )
+        assert decision.status_code == 200
+
+    code_run = client.post(f"/api/projects/{project['id']}/agents/code-generation-agent/run", headers=headers)
+    assert code_run.status_code == 201
+    repository = code_run.json()["toolCalls"][0]
+    assert repository["repositoryUrl"] == "https://github.com/csdmichael/factory-app"
+    assert repository["merged"] is False
+
+    plan_run = client.post(f"/api/projects/{project['id']}/agents/test-planning-agent/run", headers=headers)
+    assert plan_run.status_code == 201
+    assert plan_run.json()["toolCalls"][0]["type"] == "ado-test-plan"
+
+    test_run = client.post(f"/api/projects/{project['id']}/agents/testing-agent/run", headers=headers)
+    assert test_run.status_code == 201
+    automation = test_run.json()["toolCalls"][0]
+    assert automation["type"] == "test-automation-run"
+    assert automation["runner"] in ("azure-pipelines", "github-actions")
+    assert automation["status"] == "queued"
 
 
 def test_guest_login_is_read_only():

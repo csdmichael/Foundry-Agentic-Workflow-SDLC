@@ -58,6 +58,7 @@ CONFIG = {
         "apimSubscriptionKey": env("APIM_SUBSCRIPTION_KEY"),
         "adoPat": env("ADO_PAT"),
         "gitHubPat": env("GITHUB_PAT"),
+        "graphAccessToken": env("GRAPH_ACCESS_TOKEN"),
         "cosmosConnectionString": env("PERSIST_COSMOS_CONNECTION_STRING"),
         "cosmosEndpoint": env("PERSIST_COSMOS_ENDPOINT"),
         "cosmosDatabase": env("PERSIST_COSMOS_DATABASE"),

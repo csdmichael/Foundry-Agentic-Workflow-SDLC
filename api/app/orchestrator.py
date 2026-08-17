@@ -6,7 +6,7 @@ guardrails screen the prompt and completion; all Foundry calls go via APIM.
 """
 from typing import Dict, List, Optional
 
-from . import agents_service, approvals, audit_service, guardrails
+from . import agent_workflow, agents_service, approvals, audit_service, guardrails, integrations
 from .errors import ApiError
 from .foundry import call_foundry
 from .persistence import get_repository
@@ -19,6 +19,10 @@ def _run_repo():
 
 def _artifact_repo():
     return get_repository("artifacts")
+
+
+def _project_repo():
+    return get_repository("projects")
 
 
 _ARTIFACT_KIND = {
@@ -42,20 +46,27 @@ def run_agent(inp: Dict, user: Dict, correlation_id: str) -> Dict:
     if not agent["enabled"]:
         raise ApiError(409, f'Agent disabled: {inp["agentId"]}')
 
-    # (1) Human-in-the-loop enforcement — the hard gate.
-    if agent["requiresHumanApproval"]:
-        if not approvals.is_stage_approved(inp["workflowRunId"], agent["lifecycleStage"]):
-            audit_service.record(
-                actor_type="system",
-                actor="orchestrator",
-                action="agent.blocked.approval-missing",
-                target_type="agent",
-                target_id=agent["agentId"],
-                correlation_id=correlation_id,
-                workflow_run_id=inp["workflowRunId"],
-                details={"lifecycleStage": agent["lifecycleStage"]},
-            )
-            raise approvals.ApprovalRequiredError(agent["lifecycleStage"])
+    try:
+        return agent_workflow.run(
+            inp,
+            agent,
+            lambda workflow_input: _execute_approved_agent(workflow_input, agent, user, correlation_id),
+        )
+    except approvals.ApprovalRequiredError:
+        audit_service.record(
+            actor_type="system",
+            actor="orchestrator",
+            action="agent.blocked.approval-missing",
+            target_type="agent",
+            target_id=agent["agentId"],
+            correlation_id=correlation_id,
+            workflow_run_id=inp["workflowRunId"],
+            details={"lifecycleStage": agent["lifecycleStage"], "framework": "microsoft-agent-framework"},
+        )
+        raise
+
+
+def _execute_approved_agent(inp: Dict, agent: Dict, user: Dict, correlation_id: str) -> Dict:
 
     now = now_iso()
     run = {
@@ -133,6 +144,12 @@ def run_agent(inp: Dict, user: Dict, correlation_id: str) -> Dict:
     _artifact_repo().upsert(artifact)
     run["outputArtifactIds"].append(artifact["id"])
 
+    project = _project_repo().get_by_id(inp["projectId"])
+    if not project:
+        raise ApiError(404, "Project not found")
+    tool_calls = integrations.dispatch(agent["agentId"], project, artifact)
+    run["toolCalls"] = tool_calls
+
     run["state"] = "Completed"
     run["completedAt"] = now_iso()
     _run_repo().upsert(run)
@@ -145,7 +162,12 @@ def run_agent(inp: Dict, user: Dict, correlation_id: str) -> Dict:
         target_id=run["id"],
         correlation_id=correlation_id,
         workflow_run_id=inp["workflowRunId"],
-        details={"mocked": result["mocked"], "tokenEstimate": result["tokenEstimate"], "artifactId": artifact["id"]},
+        details={
+            "mocked": result["mocked"],
+            "tokenEstimate": result["tokenEstimate"],
+            "artifactId": artifact["id"],
+            "toolCallIds": [tool_call["id"] for tool_call in tool_calls],
+        },
     )
     return run
 
