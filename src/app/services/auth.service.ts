@@ -121,7 +121,9 @@ export class AuthService {
       auth: {
         clientId: meta.uiClientId,
         authority: meta.authority || `https://login.microsoftonline.com/${meta.tenantId}`,
-        redirectUri: window.location.origin,
+        // Dedicated static page so the popup doesn't reload the SPA (which would
+        // strip the auth code from the URL and re-show the login page).
+        redirectUri: `${window.location.origin}/assets/msal-redirect.html`,
       },
       cache: { cacheLocation: 'localStorage' },
     });
