@@ -34,11 +34,13 @@ export class LoginPage {
   constructor(private auth: AuthService, private router: Router) {}
 
   quickFill(email: string): void {
+    if (this.isBusy()) return;
     this.email = email;
     this.error.set(null);
   }
 
   async guest(): Promise<void> {
+    if (this.isBusy()) return;
     this.error.set(null);
     this.guestLoading.set(true);
     try {
@@ -52,6 +54,7 @@ export class LoginPage {
   }
 
   async sendCode(): Promise<void> {
+    if (this.isBusy()) return;
     this.error.set(null);
     this.info.set(null);
     if (!this.email.includes('@')) {
@@ -82,6 +85,7 @@ export class LoginPage {
   }
 
   async verify(): Promise<void> {
+    if (this.isBusy()) return;
     this.error.set(null);
     this.loading.set(true);
     try {
@@ -95,6 +99,7 @@ export class LoginPage {
   }
 
   async entra(): Promise<void> {
+    if (this.isBusy()) return;
     this.error.set(null);
     this.loading.set(true);
     try {
@@ -108,10 +113,15 @@ export class LoginPage {
   }
 
   reset(): void {
+    if (this.isBusy()) return;
     this.step.set('email');
     this.code = '';
     this.error.set(null);
     this.info.set(null);
+  }
+
+  isBusy(): boolean {
+    return this.loading() || this.guestLoading();
   }
 
   private messageOf(err: unknown): string {
