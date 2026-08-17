@@ -44,7 +44,7 @@ export const uiConfig = {
     title: 'Sr Solution Engineer',
     linkedIn: 'https://www.linkedin.com/in/michael-yaacoub-7a46436/',
     gitHub: 'csdmichael',
-    gitHubUrl: 'https://github.com/csdmichael',
+    gitHubUrl: 'https://github.com/csdmichael/Foundry-Agentic-Workflow-SDLC',
   },
 
   brand: {

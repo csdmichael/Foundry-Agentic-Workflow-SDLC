@@ -7,7 +7,7 @@ action advances to the next stage.
 
 > Michael Yaacoub | Sr Solution Engineer —
 > [LinkedIn](https://www.linkedin.com/in/michael-yaacoub-7a46436/) ·
-> [github.com/csdmichael](https://github.com/csdmichael)
+> [github.com/csdmichael/Foundry-Agentic-Workflow-SDLC](https://github.com/csdmichael/Foundry-Agentic-Workflow-SDLC)
 
 ---
 
