@@ -42,7 +42,7 @@ def test_unauthenticated_is_rejected():
 
 
 def test_project_submit_blocks_agent_until_gate_approved():
-    session = _login("admin@MngEnvMCAP829495.onmicrosoft.com")
+    session = _login("myaacoub@microsoft.com")
     headers = {"Authorization": f"Bearer {session['token']}"}
 
     project = client.post("/api/projects", json={"name": "Test Project", "selectedAgentIds": []}, headers=headers).json()
@@ -82,3 +82,17 @@ def test_project_defaults_expose_configured_org():
     data = res.json()
     assert data["adoOrganization"] == "https://dev.azure.com/csdmichael"
     assert data["gitHubOrg"] == "csdmichael"
+
+
+def test_internal_domain_rejects_otp():
+    # Internal domain must use Entra ID SSO, not OTP.
+    req = client.post("/api/auth/otp/request", json={"email": "admin@MngEnvMCAP829495.onmicrosoft.com"})
+    assert req.status_code == 400
+    ver = client.post("/api/auth/otp/verify", json={"email": "admin@MngEnvMCAP829495.onmicrosoft.com", "code": "000000"})
+    assert ver.status_code == 400
+
+
+def test_auth_meta_reports_entra_flag():
+    meta = client.get("/api/auth/meta").json()
+    assert "entraEnabled" in meta
+    assert meta["internalDomains"] == ["MngEnvMCAP829495.onmicrosoft.com"]

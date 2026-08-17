@@ -54,6 +54,9 @@ def _to_auth_user(user: Dict, provider: str) -> Dict:
 
 def request_otp(email: str) -> Dict:
     key = email.strip().lower()
+    # Internal domains must use Entra ID SSO, not OTP.
+    if _is_internal_email(key):
+        raise ApiError(400, "This email domain uses Microsoft Entra ID single sign-on. Use 'Sign in with Microsoft Entra ID'.")
     now = time.time()
     ext = CONFIG["api"]["auth"]["external"]
 
@@ -77,6 +80,9 @@ def request_otp(email: str) -> Dict:
 
 def verify_otp(email: str, code: str) -> Dict:
     key = email.strip().lower()
+    # Internal domains must use Entra ID SSO, not OTP.
+    if _is_internal_email(key):
+        raise ApiError(400, "This email domain uses Microsoft Entra ID single sign-on. Use 'Sign in with Microsoft Entra ID'.")
 
     if CONFIG["flags"]["otpDevBypass"] and code == "000000":
         return _issue_for_otp_user(key)
@@ -223,6 +229,7 @@ def auth_meta() -> Dict:
         "authority": entra_authority(),
         "apiScopeName": CONFIG["api"]["auth"]["internal"]["apiScopeName"],
         "internalDomains": CONFIG["api"]["auth"]["internalDomains"],
+        "entraEnabled": bool(CONFIG["secrets"]["entraTenantId"] and CONFIG["secrets"]["entraUiClientId"]),
         "otpEnabled": True,
         "otpDevBypass": CONFIG["flags"]["otpDevBypass"],
     }

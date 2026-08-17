@@ -32,7 +32,7 @@
           "configurations": {
             "production": {
               "budgets": [
-                { "type": "initial", "maximumWarning": "2mb", "maximumError": "5mb" },
+                { "type": "initial", "maximumWarning": "3mb", "maximumError": "5mb" },
                 { "type": "anyComponentStyle", "maximumWarning": "6kb", "maximumError": "12kb" }
               ],
               "outputHashing": "all"

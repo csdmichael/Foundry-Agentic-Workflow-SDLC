@@ -60,6 +60,13 @@ export class LoginPage {
     }
     this.loading.set(true);
     try {
+      const meta = await this.auth.getMeta();
+      // Internal domains use Entra ID SSO; all others use email OTP.
+      if (meta.entraEnabled && this.auth.isInternalEmail(this.email, meta)) {
+        await this.auth.loginWithEntra(this.email);
+        this.router.navigate(['/dashboard']);
+        return;
+      }
       const res = await this.auth.requestOtp(this.email);
       this.step.set('code');
       this.info.set(
@@ -89,10 +96,14 @@ export class LoginPage {
 
   async entra(): Promise<void> {
     this.error.set(null);
+    this.loading.set(true);
     try {
-      await this.auth.loginWithEntra();
+      await this.auth.loginWithEntra(this.email || undefined);
+      this.router.navigate(['/dashboard']);
     } catch (err) {
       this.error.set(this.messageOf(err));
+    } finally {
+      this.loading.set(false);
     }
   }
 

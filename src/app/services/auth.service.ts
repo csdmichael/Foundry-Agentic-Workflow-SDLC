@@ -1,6 +1,7 @@
 import { Injectable, computed, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { PublicClientApplication, type IPublicClientApplication } from '@azure/msal-browser';
 import { uiConfig } from '../config/ui.config';
 import { AuthUser } from '../models/models';
 
@@ -16,6 +17,7 @@ interface AuthMeta {
   uiClientId: string;
   authority: string;
   internalDomains: string[];
+  entraEnabled: boolean;
   otpEnabled: boolean;
   otpDevBypass: boolean;
 }
@@ -29,6 +31,8 @@ interface AuthMeta {
 export class AuthService {
   private readonly _user = signal<AuthUser | null>(this.restoreUser());
   private readonly _capabilities = signal<string[]>([]);
+  private _metaCache?: AuthMeta;
+  private msal?: IPublicClientApplication;
 
   readonly user = this._user.asReadonly();
   readonly capabilities = this._capabilities.asReadonly();
@@ -42,6 +46,18 @@ export class AuthService {
 
   meta(): Promise<AuthMeta> {
     return firstValueFrom(this.http.get<AuthMeta>(`${uiConfig.apiBaseUrl}/auth/meta`));
+  }
+
+  /** Cached auth metadata (tenant, client id, internal domains). */
+  async getMeta(): Promise<AuthMeta> {
+    if (!this._metaCache) this._metaCache = await this.meta();
+    return this._metaCache;
+  }
+
+  /** Whether the email's domain is an internal (Entra ID SSO) domain. */
+  isInternalEmail(email: string, meta: AuthMeta): boolean {
+    const domain = email.split('@')[1]?.toLowerCase() ?? '';
+    return meta.internalDomains.some((d) => d.toLowerCase() === domain);
   }
 
   async requestOtp(email: string): Promise<{ delivered: boolean }> {
@@ -73,14 +89,45 @@ export class AuthService {
   }
 
   /**
-   * Entra ID sign-in. When a UI client ID is configured, integrate MSAL here to
-   * acquire an access token for the API scope, then call persistSession() with
-   * that token. Until configured, this throws a friendly error so the UI can
-   * steer users to OTP in local/demo mode.
+   * Entra ID single sign-on (MSAL). Internal-domain users authenticate here;
+   * the acquired ID token is sent as the Bearer to the API, which validates it
+   * against the tenant JWKS and resolves the user's role.
    */
-  async loginWithEntra(): Promise<never> {
-    // TODO: wire @azure/msal-browser using meta.uiClientId / meta.authority.
-    throw new Error('Entra ID sign-in requires MSAL configuration. Use Email OTP in demo mode.');
+  async loginWithEntra(loginHint?: string): Promise<AuthUser> {
+    const meta = await this.getMeta();
+    if (!meta.entraEnabled || !meta.uiClientId || !meta.tenantId) {
+      throw new Error('Entra ID sign-in is not configured. Use Email OTP.');
+    }
+    const msal = await this.getMsal(meta);
+    const result = await msal.loginPopup({
+      scopes: ['openid', 'profile', 'email'],
+      loginHint,
+    });
+    const idToken = result.idToken;
+    // Resolve the authoritative identity/role from the API using the Entra token.
+    const me = await firstValueFrom(
+      this.http.get<{ user: AuthUser }>(`${uiConfig.apiBaseUrl}/auth/me`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      }),
+    );
+    this.persistSession(idToken, me.user);
+    await this.loadCapabilities();
+    return me.user;
+  }
+
+  private async getMsal(meta: AuthMeta): Promise<IPublicClientApplication> {
+    if (this.msal) return this.msal;
+    const app = new PublicClientApplication({
+      auth: {
+        clientId: meta.uiClientId,
+        authority: meta.authority || `https://login.microsoftonline.com/${meta.tenantId}`,
+        redirectUri: window.location.origin,
+      },
+      cache: { cacheLocation: 'localStorage' },
+    });
+    await app.initialize();
+    this.msal = app;
+    return app;
   }
 
   async loadCapabilities(): Promise<void> {
