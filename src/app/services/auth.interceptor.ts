@@ -20,9 +20,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const correlationId = crypto.randomUUID();
 
-  const authorize = (request: HttpRequest<unknown>, token: string | null) => {
+  const authorize = (request: HttpRequest<unknown>, token: string | null, replace = false) => {
     const headers: Record<string, string> = { [uiConfig.correlationHeader]: correlationId };
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+    // Sign-in calls /auth/me with the freshly acquired token before it becomes the
+    // stored session; overwriting it here would send the stale token instead.
+    if (token && (replace || !request.headers.has('Authorization'))) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
     return request.clone({ setHeaders: headers });
   };
 
@@ -40,7 +44,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             router.navigate(['/login'], { queryParams: { expired: 1 } });
             return throwError(() => error);
           }
-          return next(authorize(req, token));
+          return next(authorize(req, token, true));
         }),
       );
     }),

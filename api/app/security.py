@@ -6,6 +6,7 @@
 """
 import hashlib
 import hmac
+import logging
 import secrets
 import time
 from typing import Dict, List
@@ -18,6 +19,8 @@ from .config import CONFIG, entra_authority, entra_jwks_uri
 from .email_service import send_otp_email
 from .errors import ApiError
 from .rbac import has_capability
+
+logger = logging.getLogger(__name__)
 
 _otp_store: Dict[str, Dict] = {}
 _rate_buckets: Dict[str, List[float]] = {}
@@ -262,7 +265,14 @@ def get_current_user(request: Request) -> Dict:
         return verify_bearer(token)
     except ApiError:
         raise
-    except Exception:
+    except Exception as exc:
+        # Keep the client message generic, but make the cause diagnosable in logs.
+        logger.warning(
+            "Bearer token rejected (%s): %s",
+            type(exc).__name__,
+            exc,
+            extra={"correlationId": getattr(request.state, "correlation_id", "")},
+        )
         raise ApiError(401, "Invalid or expired token")
 
 
