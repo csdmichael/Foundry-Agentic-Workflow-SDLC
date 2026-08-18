@@ -2,8 +2,8 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput,
-  IonToggle, IonChip, IonBadge, IonButton, IonText, IonAccordion, IonAccordionGroup,
+  IonItem, IonLabel, IonInput, IonIcon, IonList,
+  IonToggle, IonButton, IonAccordion, IonAccordionGroup,
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../services/api.service';
 import { AgentDefinition } from '../../models/models';
@@ -15,8 +15,8 @@ import { AgentDefinition } from '../../models/models';
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonItem, IonLabel, IonInput,
-    IonToggle, IonChip, IonBadge, IonButton, IonText, IonAccordion, IonAccordionGroup,
+    IonItem, IonLabel, IonInput, IonIcon, IonList,
+    IonToggle, IonButton, IonAccordion, IonAccordionGroup,
   ],
   templateUrl: './admin-agents.page.html',
 })

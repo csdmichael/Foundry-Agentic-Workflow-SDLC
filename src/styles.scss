@@ -1,66 +1,532 @@
-/* Global styles for the Agentic SDLC UI. */
+/* ===========================================================================
+   Agentic SDLC — global design system.
+   Tokens first, then layout primitives, then shared components. Pages compose
+   these classes instead of carrying one-off inline styles.
+   ========================================================================= */
+
 :root {
-  --ion-color-primary: #0f4c81;
-  --ion-color-primary-rgb: 15, 76, 129;
+  /* ---- Brand palette (Fluent-aligned) ---- */
+  --ion-color-primary: #0f6cbd;
+  --ion-color-primary-rgb: 15, 108, 189;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #0d5ea6;
+  --ion-color-primary-tint: #277ac4;
+
+  --ion-color-success: #0e700e;
+  --ion-color-success-rgb: 14, 112, 14;
+  --ion-color-success-shade: #0c630c;
+  --ion-color-success-tint: #277e27;
+
+  --ion-color-warning: #9a5b00;
+  --ion-color-warning-rgb: 154, 91, 0;
+  --ion-color-warning-contrast: #ffffff;
+  --ion-color-warning-shade: #885000;
+  --ion-color-warning-tint: #a66b1a;
+
+  --ion-color-danger: #b10e1c;
+  --ion-color-danger-rgb: 177, 14, 28;
+  --ion-color-danger-shade: #9c0c19;
+  --ion-color-danger-tint: #b92633;
+
   --ms-purple: #5c2d91;
-  --app-max-width: 1400px;
+
+  /* ---- Surfaces & lines ---- */
+  --app-bg: #f5f6f8;
+  --app-surface: #ffffff;
+  --app-surface-alt: #fafafb;
+  --app-border: #e2e5e9;
+  --app-border-strong: #cdd2d9;
+
+  /* ---- Text ---- */
+  --app-text: #17202a;
+  --app-text-secondary: #5a6472;
+  --app-text-muted: #7a8493;
+
+  /* ---- Spacing scale ---- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  /* ---- Radius & elevation ---- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --shadow-md: 0 2px 4px rgba(16, 24, 40, 0.06), 0 4px 12px rgba(16, 24, 40, 0.08);
+
+  --app-max-width: 1440px;
+
+  --ion-font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+  --ion-background-color: var(--app-bg);
+  --ion-text-color: var(--app-text);
 }
 
 * {
   box-sizing: border-box;
 }
 
+body {
+  font-family: var(--ion-font-family);
+  color: var(--app-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===========================================================================
+   Typography
+   ========================================================================= */
+
+h1, h2, h3, h4 {
+  color: var(--app-text);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+h1 { font-size: 1.5rem; font-weight: 650; line-height: 1.3; }
+h2 { font-size: 1.15rem; font-weight: 640; line-height: 1.35; }
+h3 { font-size: 0.98rem; font-weight: 620; line-height: 1.4; }
+
+.muted {
+  color: var(--app-text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.text-xs { font-size: 0.76rem; }
+
+.mono {
+  font-family: 'Cascadia Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+a {
+  color: var(--ion-color-primary);
+  text-decoration: none;
+}
+
+a:hover { text-decoration: underline; }
+
+/* ===========================================================================
+   Layout primitives
+   ========================================================================= */
+
 .page-container {
   max-width: var(--app-max-width);
   margin: 0 auto;
   width: 100%;
+  padding-bottom: var(--sp-6);
 }
 
-.card-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+/* Title block on the left, actions on the right. */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--sp-4);
+  margin-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--app-border);
+
+  .page-header__text { min-width: 0; }
+
+  .page-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+  }
+
+  p { margin: var(--sp-1) 0 0; }
 }
 
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--sp-3);
 }
 
-.muted {
-  color: var(--ion-color-medium);
-  font-size: 0.85rem;
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
 }
 
-.state-badge {
-  text-transform: uppercase;
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
+.row--between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
 }
 
-.identity-footer {
-  font-size: 0.8rem;
-  text-align: center;
-  padding: 8px 12px;
-  color: var(--ion-color-medium);
+.spacer { flex: 1 1 auto; }
 
-  a {
-    color: var(--ion-color-primary);
+.card-grid {
+  display: grid;
+  gap: var(--sp-4);
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.stat-grid {
+  display: grid;
+  gap: var(--sp-4);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-bottom: var(--sp-5);
+}
+
+/* ===========================================================================
+   Surfaces
+   ========================================================================= */
+
+.surface,
+.panel,
+.stat {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.panel {
+  margin-bottom: var(--sp-4);
+  overflow: hidden;
+}
+
+.panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+  border-bottom: 1px solid var(--app-border);
+
+  h2 { font-size: 1rem; }
+  p { margin: 2px 0 0; }
+}
+
+.panel__body { padding: var(--sp-4); }
+.panel__body--flush { padding: 0; }
+
+/* Metric tile */
+.stat {
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  transition: box-shadow 0.15s ease;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    box-shadow: var(--shadow-md);
     text-decoration: none;
-    margin: 0 6px;
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+
+  .stat__label {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--app-text-secondary);
+  }
+
+  .stat__value {
+    font-size: 2rem;
+    font-weight: 660;
+    line-height: 1.1;
+    color: var(--app-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat__hint { font-size: 0.8rem; color: var(--app-text-muted); }
+
+  ion-icon { font-size: 1rem; color: var(--ion-color-primary); }
 }
+
+.stat--accent-warning .stat__value { color: var(--ion-color-warning); }
+.stat--accent-danger .stat__value { color: var(--ion-color-danger); }
+
+/* ===========================================================================
+   Status pills
+   ========================================================================= */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: 0.73rem;
+  font-weight: 620;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  line-height: 1.6;
+}
+
+.pill::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.pill--plain::before { display: none; }
+
+.pill--neutral { background: #eef0f3; color: #4a5462; border-color: #dfe3e8; }
+.pill--info { background: #e8f1fb; color: #0b5394; border-color: #cfe1f5; }
+.pill--success { background: #e7f4e7; color: #0b5d0b; border-color: #cbe6cb; }
+.pill--warning { background: #fdf1e0; color: #8a5100; border-color: #f5dfc2; }
+.pill--danger { background: #fdeaec; color: #9c0c19; border-color: #f7d2d6; }
+.pill--running { background: #ede9f8; color: #4b2c8f; border-color: #dcd4f2; }
+
+/* ===========================================================================
+   Data table
+   ========================================================================= */
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  th {
+    text-align: left;
+    font-weight: 620;
+    font-size: 0.74rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--app-text-secondary);
+    background: var(--app-surface-alt);
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--app-border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--app-border);
+    vertical-align: middle;
+    color: var(--app-text);
+  }
+
+  tbody tr { transition: background 0.12s ease; }
+  tbody tr:hover { background: var(--app-surface-alt); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.is-clickable { cursor: pointer; }
+
+  .cell-primary { font-weight: 600; }
+
+  .cell-sub {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--app-text-secondary);
+    margin-top: 2px;
+  }
+
+  .cell-actions {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .num { font-variant-numeric: tabular-nums; }
+}
+
+/* ===========================================================================
+   Empty & loading states
+   ========================================================================= */
+
+.empty-state {
+  text-align: center;
+  padding: var(--sp-7) var(--sp-4);
+  color: var(--app-text-secondary);
+
+  ion-icon {
+    font-size: 2.4rem;
+    color: var(--app-border-strong);
+    margin-bottom: var(--sp-3);
+  }
+
+  h3 { margin-bottom: var(--sp-1); color: var(--app-text); }
+  p { margin: 0 auto var(--sp-4); max-width: 46ch; font-size: 0.88rem; }
+}
+
+.skeleton-row {
+  height: 14px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, #eceef1 25%, #f5f6f8 50%, #eceef1 75%);
+  background-size: 200% 100%;
+  animation: skeleton 1.4s ease-in-out infinite;
+  margin-bottom: var(--sp-2);
+}
+
+@keyframes skeleton {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ===========================================================================
+   Inline alert
+   ========================================================================= */
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  font-size: 0.87rem;
+  margin-bottom: var(--sp-4);
+
+  ion-icon { font-size: 1.05rem; flex: none; margin-top: 1px; }
+  p { margin: 0; }
+}
+
+.alert--danger { background: #fdeaec; border-color: #f7d2d6; color: #8c0a16; }
+.alert--warning { background: #fdf1e0; border-color: #f5dfc2; color: #7a4700; }
+.alert--success { background: #e7f4e7; border-color: #cbe6cb; color: #0b5d0b; }
+.alert--info { background: #e8f1fb; border-color: #cfe1f5; color: #0b5394; }
+
+/* ===========================================================================
+   Workflow timeline
+   ========================================================================= */
 
 .workflow-timeline {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--sp-2);
 }
 
 .workflow-timeline .stage {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--ion-color-step-200, #ddd);
-  font-size: 0.8rem;
+  flex: 1 1 130px;
+  min-width: 130px;
+  padding: var(--sp-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-alt);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+
+  .stage__name {
+    font-size: 0.82rem;
+    font-weight: 620;
+    text-transform: capitalize;
+    color: var(--app-text);
+  }
+}
+
+.workflow-timeline .stage--current {
+  border-color: var(--ion-color-primary);
+  background: #eef5fc;
+  box-shadow: inset 0 0 0 1px var(--ion-color-primary);
+}
+
+/* ===========================================================================
+   Key/value description list
+   ========================================================================= */
+
+.kv {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--sp-4);
+  margin: 0;
+}
+
+.kv__item {
+  min-width: 0;
+
+  dt {
+    font-size: 0.73rem;
+    font-weight: 620;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--app-text-secondary);
+    margin-bottom: var(--sp-1);
+  }
+
+  dd {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--app-text);
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ===========================================================================
+   Ionic component overrides
+   ========================================================================= */
+
+ion-card {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--app-border);
+  margin: 0 0 var(--sp-4);
+}
+
+ion-button {
+  --border-radius: var(--radius-sm);
+  --box-shadow: none;
+  text-transform: none;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+ion-searchbar {
+  --border-radius: var(--radius-sm);
+  --box-shadow: none;
+  --background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-sm);
+  padding: 0;
+}
+
+ion-item { --background: transparent; }
+
+ion-badge {
+  font-weight: 620;
+  letter-spacing: 0.02em;
+}
+
+.identity-footer {
+  font-size: 0.78rem;
+  text-align: center;
+  padding: var(--sp-2) var(--sp-3);
+  color: var(--app-text-secondary);
+  background: var(--app-surface);
+  border-top: 1px solid var(--app-border);
+
+  a { margin: 0 6px; }
+}
+
+/* Respect users who prefer less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

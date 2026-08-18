@@ -1,32 +1,59 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonNote } from '@ionic/angular/standalone';
 import { ApiService } from '../../services/api.service';
 
 /** Read-only view of non-secret config (APIM, integrations, guardrails). */
 @Component({
   selector: 'app-admin-config',
   standalone: true,
-  imports: [CommonModule, IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonNote],
+  imports: [CommonModule],
   template: `
-    <h1>APIM & Configuration</h1>
-    <ion-note color="medium">Secrets are never returned by the API. Values shown come from each tier's config folder.</ion-note>
+    <header class="page-header">
+      <div class="page-header__text">
+        <h1>APIM &amp; Configuration</h1>
+        <p class="muted">
+          Read-only view of non-secret configuration. Secrets are never returned by the API —
+          values come from each tier's config folder.
+        </p>
+      </div>
+    </header>
+
     @if (cfg(); as c) {
-      <ion-card>
-        <ion-card-header><ion-card-title>APIM Gateway</ion-card-title></ion-card-header>
-        <ion-card-content><pre>{{ pretty(c['apim']) }}</pre></ion-card-content>
-      </ion-card>
-      <ion-card>
-        <ion-card-header><ion-card-title>Integrations</ion-card-title></ion-card-header>
-        <ion-card-content><pre>{{ pretty(c['integrations']) }}</pre></ion-card-content>
-      </ion-card>
-      <ion-card>
-        <ion-card-header><ion-card-title>Guardrails</ion-card-title></ion-card-header>
-        <ion-card-content><pre>{{ pretty(c['guardrails']) }}</pre></ion-card-content>
-      </ion-card>
+      <div class="panel">
+        <div class="panel__header"><h2>APIM gateway</h2></div>
+        <div class="panel__body"><pre>{{ pretty(c['apim']) }}</pre></div>
+      </div>
+      <div class="panel">
+        <div class="panel__header"><h2>Integrations</h2></div>
+        <div class="panel__body"><pre>{{ pretty(c['integrations']) }}</pre></div>
+      </div>
+      <div class="panel">
+        <div class="panel__header"><h2>Guardrails</h2></div>
+        <div class="panel__body"><pre>{{ pretty(c['guardrails']) }}</pre></div>
+      </div>
+    } @else {
+      <div class="panel">
+        <div class="panel__body">
+          <div class="skeleton-row" style="width: 60%"></div>
+          <div class="skeleton-row" style="width: 45%"></div>
+        </div>
+      </div>
     }
   `,
-  styles: [`pre { white-space: pre-wrap; font-size: 0.78rem; background: var(--ion-color-step-50, #f7f7f7); padding: 10px; border-radius: 8px; }`],
+  styles: [`
+    pre {
+      white-space: pre-wrap;
+      font-family: 'Cascadia Mono', ui-monospace, Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.55;
+      background: var(--app-surface-alt);
+      border: 1px solid var(--app-border);
+      padding: var(--sp-3);
+      border-radius: var(--radius-sm);
+      margin: 0;
+      overflow-x: auto;
+    }
+  `],
 })
 export class AdminConfigPage implements OnInit {
   cfg = signal<Record<string, unknown> | null>(null);

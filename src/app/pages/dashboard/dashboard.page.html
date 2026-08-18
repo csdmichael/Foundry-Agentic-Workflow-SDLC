@@ -1,68 +1,96 @@
-<h1>Welcome{{ user() ? ', ' + user()?.name : '' }}</h1>
-<p class="muted">Agentic SDLC operations at a glance.</p>
+<header class="page-header">
+  <div class="page-header__text">
+    <h1>Welcome{{ firstName() ? ', ' + firstName() : '' }}</h1>
+    <p class="muted">Agentic SDLC operations at a glance.</p>
+  </div>
+  <div class="page-header__actions">
+    <ion-button routerLink="/projects/new" size="small">
+      <ion-icon slot="start" name="add-outline" aria-hidden="true"></ion-icon>
+      New project
+    </ion-button>
+  </div>
+</header>
 
-<ion-grid>
-  <ion-row>
-    <ion-col size="12" size-md="4">
-      <ion-card>
-        <ion-card-header>
-          <ion-card-title><ion-icon name="folder-open-outline"></ion-icon> Active Projects</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <div class="metric">{{ activeProjects() }}</div>
-          <ion-button routerLink="/projects" fill="clear" size="small">View all</ion-button>
-        </ion-card-content>
-      </ion-card>
-    </ion-col>
-    <ion-col size="12" size-md="4">
-      <ion-card>
-        <ion-card-header>
-          <ion-card-title><ion-icon name="git-network-outline"></ion-icon> Workflow Runs</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <div class="metric">{{ runs().length }}</div>
-          <ion-button routerLink="/workflow-runs" fill="clear" size="small">View runs</ion-button>
-        </ion-card-content>
-      </ion-card>
-    </ion-col>
-    <ion-col size="12" size-md="4">
-      <ion-card>
-        <ion-card-header>
-          <ion-card-title><ion-icon name="checkmark-done-outline"></ion-icon> Pending Approvals</ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <div class="metric">{{ pending().length }}</div>
-          <ion-button routerLink="/approvals" fill="clear" size="small">Open queue</ion-button>
-        </ion-card-content>
-      </ion-card>
-    </ion-col>
-  </ion-row>
-</ion-grid>
+<section class="stat-grid" aria-label="Key metrics">
+  <a class="stat" routerLink="/projects">
+    <span class="stat__label">
+      <ion-icon name="folder-open-outline" aria-hidden="true"></ion-icon>
+      Active projects
+    </span>
+    <span class="stat__value">{{ activeProjects() }}</span>
+    <span class="stat__hint">{{ projects().length }} total, including archived</span>
+  </a>
 
-<ion-card>
-  <ion-card-header>
-    <ion-card-title>Recent projects</ion-card-title>
-  </ion-card-header>
-  <ion-card-content>
-    @if (projects().length === 0) {
-      <p class="muted">No projects yet. <a routerLink="/projects/new">Create your first project</a>.</p>
-    } @else {
-      <ion-list>
-        @for (p of projects().slice(0, 6); track p.id) {
-          <ion-item [routerLink]="['/projects', p.id]" button detail>
-            <ion-label>
-              <h3>{{ p.name }}</h3>
-              <p class="muted">Stage: {{ p.currentStage }} · Owner: {{ p.businessOwner }}</p>
-            </ion-label>
-            <ion-badge slot="end">{{ p.state }}</ion-badge>
-          </ion-item>
-        }
-      </ion-list>
-    }
-  </ion-card-content>
-</ion-card>
+  <a class="stat" routerLink="/workflow-runs">
+    <span class="stat__label">
+      <ion-icon name="git-network-outline" aria-hidden="true"></ion-icon>
+      Workflow runs
+    </span>
+    <span class="stat__value">{{ runs().length }}</span>
+    <span class="stat__hint">{{ runningRuns() }} currently running</span>
+  </a>
 
-<style>
-  .metric { font-size: 2.4rem; font-weight: 700; color: var(--ion-color-primary); }
-  ion-card-title ion-icon { vertical-align: middle; margin-right: 6px; }
-</style>
+  <a class="stat" routerLink="/approvals" [class.stat--accent-warning]="pending().length > 0">
+    <span class="stat__label">
+      <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+      Pending approvals
+    </span>
+    <span class="stat__value">{{ pending().length }}</span>
+    <span class="stat__hint">
+      {{ pending().length === 0 ? 'Nothing waiting on a human' : 'Gates awaiting a decision' }}
+    </span>
+  </a>
+</section>
+
+<section class="panel">
+  <div class="panel__header">
+    <div>
+      <h2>Recent projects</h2>
+      <p class="muted">The six most recently created projects.</p>
+    </div>
+    <ion-button routerLink="/projects" fill="clear" size="small">View all</ion-button>
+  </div>
+
+  @if (loading()) {
+    <div class="panel__body">
+      <div class="skeleton-row" style="width: 70%"></div>
+      <div class="skeleton-row" style="width: 55%"></div>
+      <div class="skeleton-row" style="width: 62%"></div>
+    </div>
+  } @else if (projects().length === 0) {
+    <div class="empty-state">
+      <ion-icon name="folder-open-outline" aria-hidden="true"></ion-icon>
+      <h3>No projects yet</h3>
+      <p>Create a project to run the intake wizard and open the Plan &amp; Scope approval gate.</p>
+      <ion-button routerLink="/projects/new" size="small">Create your first project</ion-button>
+    </div>
+  } @else {
+    <div class="panel__body panel__body--flush table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Project</th>
+            <th scope="col">Stage</th>
+            <th scope="col">Environment</th>
+            <th scope="col">Business owner</th>
+            <th scope="col">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of projects().slice(0, 6); track p.id) {
+            <tr class="is-clickable" [routerLink]="['/projects', p.id]">
+              <td>
+                <span class="cell-primary">{{ p.name }}</span>
+                <span class="cell-sub">{{ p.description || 'No description' }}</span>
+              </td>
+              <td style="text-transform: capitalize">{{ p.currentStage }}</td>
+              <td>{{ p.targetEnvironment }}</td>
+              <td>{{ p.businessOwner || '—' }}</td>
+              <td><span [class]="statusClass(p.state)">{{ statusLabel(p.state) }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

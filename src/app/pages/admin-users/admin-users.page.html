@@ -1,18 +1,33 @@
-<h1>User Management</h1>
-<p class="muted">App Owner only. Add or edit users and set each user's authentication method.</p>
-@if (error()) { <ion-text color="danger"><p>{{ error() }}</p></ion-text> }
+<header class="page-header">
+  <div class="page-header__text">
+    <h1>User Management</h1>
+    <p class="muted">App Owner only. Add or edit users and set each user's authentication method.</p>
+  </div>
+</header>
 
-<ion-card>
-  <ion-card-header><ion-card-title>Add / edit user</ion-card-title></ion-card-header>
-  <ion-card-content>
-    <ion-list>
+@if (error()) {
+  <div class="alert alert--danger" role="alert">
+    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+    <p>{{ error() }}</p>
+  </div>
+}
+
+<div class="panel">
+  <div class="panel__header">
+    <div>
+      <h2>Add or edit user</h2>
+      <p class="muted">Saving an existing email updates that user in place.</p>
+    </div>
+  </div>
+  <div class="panel__body">
+    <ion-list lines="none">
       <ion-item>
         <ion-label position="stacked">Name</ion-label>
-        <ion-input [(ngModel)]="form.name"></ion-input>
+        <ion-input [(ngModel)]="form.name" placeholder="Jane Doe"></ion-input>
       </ion-item>
       <ion-item>
         <ion-label position="stacked">Email</ion-label>
-        <ion-input type="email" [(ngModel)]="form.email"></ion-input>
+        <ion-input type="email" [(ngModel)]="form.email" placeholder="name@company.com"></ion-input>
       </ion-item>
       <ion-item>
         <ion-label position="stacked">Role</ion-label>
@@ -27,28 +42,54 @@
         </ion-select>
       </ion-item>
     </ion-list>
-    <ion-button class="ion-margin-top" (click)="save()">
-      <ion-icon slot="start" name="save-outline"></ion-icon>Save user
+    <ion-button class="ion-margin-top" size="small" (click)="save()">
+      <ion-icon slot="start" name="save-outline" aria-hidden="true"></ion-icon>Save user
     </ion-button>
-  </ion-card-content>
-</ion-card>
+  </div>
+</div>
 
-<ion-card>
-  <ion-card-header><ion-card-title>Directory</ion-card-title></ion-card-header>
-  <ion-card-content>
-    <ion-list>
-      @for (u of users(); track u.id) {
-        <ion-item lines="full">
-          <ion-label>
-            <h3>{{ u.name }}</h3>
-            <p class="muted">{{ u.email }}</p>
-          </ion-label>
-          <ion-badge slot="end" color="medium">{{ roleLabels[u.role] }}</ion-badge>
-          <ion-badge slot="end">{{ u.authenticationMethod }}</ion-badge>
-          <ion-button slot="end" size="small" fill="clear" (click)="edit(u)">Edit</ion-button>
-          <ion-button slot="end" size="small" fill="clear" color="danger" (click)="remove(u)">Remove</ion-button>
-        </ion-item>
-      }
-    </ion-list>
-  </ion-card-content>
-</ion-card>
+<div class="panel">
+  <div class="panel__header">
+    <div>
+      <h2>Directory</h2>
+      <p class="muted">{{ users().length }} user(s)</p>
+    </div>
+  </div>
+
+  @if (users().length === 0) {
+    <div class="empty-state">
+      <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+      <h3>No users yet</h3>
+      <p>Seed users are provisioned from configuration on first API start.</p>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">User</th>
+            <th scope="col">Role</th>
+            <th scope="col">Authentication</th>
+            <th scope="col" class="cell-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of users(); track u.id) {
+            <tr>
+              <td>
+                <span class="cell-primary">{{ u.name }}</span>
+                <span class="cell-sub">{{ u.email }}</span>
+              </td>
+              <td><span class="pill pill--info">{{ roleLabels[u.role] }}</span></td>
+              <td><span class="pill pill--neutral pill--plain">{{ u.authenticationMethod }}</span></td>
+              <td class="cell-actions">
+                <ion-button size="small" fill="clear" (click)="edit(u)">Edit</ion-button>
+                <ion-button size="small" fill="clear" color="danger" (click)="remove(u)">Remove</ion-button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

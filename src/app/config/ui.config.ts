@@ -14,7 +14,9 @@ export interface NavItem {
 }
 
 export interface NavSection {
+  id: string;
   title: string;
+  icon: string;
   items: NavItem[];
 }
 
@@ -82,7 +84,9 @@ export const uiConfig = {
 
   navSections: [
     {
+      id: 'operations',
       title: 'Agentic SDLC Operations',
+      icon: 'rocket-outline',
       items: [
         { title: 'Dashboard', path: '/dashboard', icon: 'grid-outline', requiredCapabilities: [] },
         { title: 'New Project', path: '/projects/new', icon: 'add-circle-outline', requiredCapabilities: ['projects.create'] },
@@ -94,7 +98,9 @@ export const uiConfig = {
       ],
     },
     {
+      id: 'admin',
       title: 'Admin',
+      icon: 'shield-outline',
       items: [
         { title: 'User Management', path: '/admin/users', icon: 'people-outline', requiredCapabilities: ['users.manage'] },
         { title: 'Agent Configuration', path: '/admin/agents', icon: 'construct-outline', requiredCapabilities: ['agents.configure'] },
@@ -103,7 +109,9 @@ export const uiConfig = {
       ],
     },
     {
+      id: 'documentation',
       title: 'Documentation',
+      icon: 'library-outline',
       items: [
         { title: 'Overview', path: '/docs/overview', icon: 'book-outline', requiredCapabilities: [] },
         { title: 'Architecture', path: '/docs/architecture', icon: 'layers-outline', requiredCapabilities: [] },

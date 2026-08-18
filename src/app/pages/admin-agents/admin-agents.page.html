@@ -1,59 +1,104 @@
-<h1>Agent Configuration</h1>
-<p class="muted">Every agent's model, APIM route, guardrails, and approval requirement are configurable.</p>
-@if (error()) { <ion-text color="danger"><p>{{ error() }}</p></ion-text> }
+<header class="page-header">
+  <div class="page-header__text">
+    <h1>Agent Configuration</h1>
+    <p class="muted">
+      Every agent's model, APIM route, guardrails, and approval requirement are data-driven.
+      Expand an agent to edit it.
+    </p>
+  </div>
+</header>
 
-<ion-accordion-group>
-  @for (agent of agents(); track agent.agentId) {
-    <ion-accordion [value]="agent.agentId">
-      <ion-item slot="header">
-        <ion-label>
-          <h3>{{ agent.displayName }}</h3>
-          <p class="muted">{{ agent.lifecycleStage }} · {{ agent.modelDeploymentName }}</p>
-        </ion-label>
-        <ion-badge slot="end" [color]="agent.enabled ? 'success' : 'medium'">
-          {{ agent.enabled ? 'enabled' : 'disabled' }}
-        </ion-badge>
-      </ion-item>
-      <div slot="content" class="ion-padding">
-        <ion-item>
-          <ion-label position="stacked">Model deployment name</ion-label>
-          <ion-input [(ngModel)]="agent.modelDeploymentName"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">APIM route</ion-label>
-          <ion-input [(ngModel)]="agent.apimRoute"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Temperature</ion-label>
-          <ion-input type="number" step="0.1" [(ngModel)]="agent.temperature"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Max input tokens</ion-label>
-          <ion-input type="number" [(ngModel)]="agent.maxInputTokens"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label position="stacked">Max output tokens</ion-label>
-          <ion-input type="number" [(ngModel)]="agent.maxOutputTokens"></ion-input>
-        </ion-item>
-        <ion-item>
-          <ion-label>Requires human approval</ion-label>
-          <ion-toggle slot="end" [(ngModel)]="agent.requiresHumanApproval"></ion-toggle>
-        </ion-item>
-        <ion-item>
-          <ion-label>Enabled</ion-label>
-          <ion-toggle slot="end" [(ngModel)]="agent.enabled"></ion-toggle>
-        </ion-item>
-        <ion-item lines="none">
-          <ion-label position="stacked">Tools / MCP / Guardrails</ion-label>
-          <div>
-            @for (t of agent.toolsAllowed; track t) { <ion-chip color="primary">{{ t }}</ion-chip> }
-            @for (m of agent.mcpServersAllowed; track m) { <ion-chip color="tertiary">mcp:{{ m }}</ion-chip> }
-            @for (g of agent.guardrails; track g) { <ion-chip color="warning">{{ g }}</ion-chip> }
+@if (error()) {
+  <div class="alert alert--danger" role="alert">
+    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+    <p>{{ error() }}</p>
+  </div>
+}
+
+<div class="panel">
+  <ion-accordion-group>
+    @for (agent of agents(); track agent.agentId) {
+      <ion-accordion [value]="agent.agentId">
+        <ion-item slot="header">
+          <ion-label>
+            <h3>{{ agent.displayName }}</h3>
+            <p class="muted">
+              <span style="text-transform: capitalize">{{ agent.lifecycleStage }}</span>
+              · {{ agent.modelDeploymentName }} · {{ agent.apimRoute }}
+            </p>
+          </ion-label>
+          <div slot="end" class="row">
+            @if (agent.requiresHumanApproval) {
+              <span class="pill pill--warning">Gated: {{ agent.approvalRole }}</span>
+            }
+            <span [class]="agent.enabled ? 'pill pill--success' : 'pill pill--neutral'">
+              {{ agent.enabled ? 'Enabled' : 'Disabled' }}
+            </span>
           </div>
         </ion-item>
-        <ion-button class="ion-margin-top" (click)="save(agent)">Save</ion-button>
-        @if (saved() === agent.agentId) { <ion-chip color="success">Saved</ion-chip> }
-      </div>
-    </ion-accordion>
-  }
-</ion-accordion-group>
+
+        <div slot="content" class="panel__body">
+          <ion-list lines="none">
+            <ion-item>
+              <ion-label position="stacked">Model deployment name</ion-label>
+              <ion-input [(ngModel)]="agent.modelDeploymentName"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-label position="stacked">APIM route</ion-label>
+              <ion-input [(ngModel)]="agent.apimRoute"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-label position="stacked">Temperature</ion-label>
+              <ion-input type="number" step="0.1" [(ngModel)]="agent.temperature"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-label position="stacked">Max input tokens</ion-label>
+              <ion-input type="number" [(ngModel)]="agent.maxInputTokens"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-label position="stacked">Max output tokens</ion-label>
+              <ion-input type="number" [(ngModel)]="agent.maxOutputTokens"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-label>Requires human approval</ion-label>
+              <ion-toggle slot="end" [(ngModel)]="agent.requiresHumanApproval"></ion-toggle>
+            </ion-item>
+            <ion-item>
+              <ion-label>Enabled</ion-label>
+              <ion-toggle slot="end" [(ngModel)]="agent.enabled"></ion-toggle>
+            </ion-item>
+          </ion-list>
+
+          <dl class="kv ion-margin-top">
+            <div class="kv__item">
+              <dt>Tools allowed</dt>
+              <dd class="row">
+                @for (t of agent.toolsAllowed; track t) { <span class="pill pill--info">{{ t }}</span> }
+                @if (agent.toolsAllowed.length === 0) { <span class="muted">None</span> }
+              </dd>
+            </div>
+            <div class="kv__item">
+              <dt>MCP servers</dt>
+              <dd class="row">
+                @for (m of agent.mcpServersAllowed; track m) { <span class="pill pill--running">{{ m }}</span> }
+                @if (agent.mcpServersAllowed.length === 0) { <span class="muted">None</span> }
+              </dd>
+            </div>
+            <div class="kv__item">
+              <dt>Guardrails</dt>
+              <dd class="row">
+                @for (g of agent.guardrails; track g) { <span class="pill pill--warning">{{ g }}</span> }
+                @if (agent.guardrails.length === 0) { <span class="muted">None</span> }
+              </dd>
+            </div>
+          </dl>
+
+          <div class="row ion-margin-top">
+            <ion-button size="small" (click)="save(agent)">Save changes</ion-button>
+            @if (saved() === agent.agentId) { <span class="pill pill--success">Saved</span> }
+          </div>
+        </div>
+      </ion-accordion>
+    }
+  </ion-accordion-group>
+</div>

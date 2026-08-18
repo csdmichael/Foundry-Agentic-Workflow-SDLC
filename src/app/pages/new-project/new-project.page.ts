@@ -14,6 +14,15 @@ import {
 } from '../../models/models';
 import { PROVIDER_LABELS } from '../../config/ui.config';
 
+const STEPS = [
+  { title: 'Project details', hint: 'Who owns this work and what is it called.' },
+  { title: 'Requirements & UX mockups', hint: 'Where the agents should read intake material from.' },
+  { title: 'DevOps & repository', hint: 'Where backlog items, code, and deployments land.' },
+  { title: 'Systems of Record', hint: 'Inherited from global settings; override only what differs.' },
+  { title: 'Lifecycle agents', hint: 'Which specialized Foundry agents run for this project.' },
+  { title: 'Confirm & submit', hint: 'Review, then open the Plan & Scope approval gate.' },
+];
+
 /**
  * New Project wizard. Collects intake details, requirement sources, ADO/GitHub
  * targets, environment, systems of record, and the lifecycle agents to run. On
@@ -98,6 +107,14 @@ export class NewProjectPage implements OnInit {
 
   progress(): number {
     return this.step() / this.totalSteps;
+  }
+
+  stepTitle(): string {
+    return STEPS[this.step() - 1]?.title ?? '';
+  }
+
+  stepHint(): string {
+    return STEPS[this.step() - 1]?.hint ?? '';
   }
 
   next(): void {

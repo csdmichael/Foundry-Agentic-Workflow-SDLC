@@ -1,99 +1,204 @@
 @if (detail(); as d) {
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
-    <div>
+  <header class="page-header">
+    <div class="page-header__text">
       <h1>{{ d.project.name }}</h1>
-      <p class="muted">{{ d.project.description }}</p>
+      <p class="muted">{{ d.project.description || 'No description' }}</p>
     </div>
-    <ion-badge [color]="badgeColor(d.project.state)">{{ d.project.state }}</ion-badge>
-  </div>
+    <div class="page-header__actions">
+      <span [class]="statusClass(d.project.state)">{{ statusLabel(d.project.state) }}</span>
+    </div>
+  </header>
 
-  @if (error()) { <ion-text color="danger"><p>{{ error() }}</p></ion-text> }
+  @if (error()) {
+    <div class="alert alert--danger" role="alert">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      <p>{{ error() }}</p>
+    </div>
+  }
 
-  <ion-card>
-    <ion-card-header><ion-card-title>Lifecycle</ion-card-title></ion-card-header>
-    <ion-card-content>
-      <div class="workflow-timeline">
-        @for (stage of d.run?.stages ?? []; track stage.stage) {
-          <div class="stage">
-            <strong>{{ stage.stage }}</strong>
-            <ion-badge [color]="badgeColor(stage.state)" class="state-badge">{{ stage.state }}</ion-badge>
-          </div>
-        }
+  <section class="panel">
+    <div class="panel__header">
+      <div>
+        <h2>Overview</h2>
+        <p class="muted">Intake details captured when the project was created.</p>
       </div>
-    </ion-card-content>
-  </ion-card>
+    </div>
+    <div class="panel__body">
+      <dl class="kv">
+        <div class="kv__item"><dt>Business owner</dt><dd>{{ d.project.businessOwner || '—' }}</dd></div>
+        <div class="kv__item"><dt>IT owner</dt><dd>{{ d.project.itOwner || '—' }}</dd></div>
+        <div class="kv__item"><dt>Environment</dt><dd>{{ d.project.targetEnvironment }}</dd></div>
+        <div class="kv__item"><dt>Current stage</dt><dd style="text-transform: capitalize">{{ d.project.currentStage }}</dd></div>
+        <div class="kv__item"><dt>Azure DevOps</dt><dd>{{ d.project.adoProject || '—' }}</dd></div>
+        <div class="kv__item"><dt>GitHub repo</dt><dd>{{ d.project.gitHubRepo || '—' }}</dd></div>
+      </dl>
+    </div>
+  </section>
 
-  <ion-card>
-    <ion-card-header><ion-card-title>Approval gates</ion-card-title></ion-card-header>
-    <ion-card-content>
-      <ion-textarea [(ngModel)]="comment" placeholder="Optional comment for your decision" autoGrow
-        [ngModelOptions]="{ standalone: true }"></ion-textarea>
-      <ion-list>
-        @for (gate of d.gates; track gate.id) {
-          <ion-item lines="full">
-            <ion-label>
-              <h3>{{ gate.name }}</h3>
-              <p class="muted">Stage: {{ gate.lifecycleStage }} · Requires: {{ gate.requiredRole }}</p>
-              @if (gate.decisions.length > 0) {
-                <p class="muted">Last: {{ gate.decisions[gate.decisions.length - 1].decision }}
-                  by {{ gate.decisions[gate.decisions.length - 1].approver }}</p>
-              }
-            </ion-label>
-            <div slot="end" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
-              <ion-badge [color]="badgeColor(gate.state)">{{ gate.state }}</ion-badge>
-              @if (gate.state === 'AwaitingApproval') {
-                <div style="display:flex;gap:4px;">
-                  <ion-button size="small" color="success" (click)="decide(gate, 'approve')" [disabled]="busy() === gate.id">Approve</ion-button>
-                  <ion-button size="small" color="warning" (click)="decide(gate, 'request-changes')" [disabled]="busy() === gate.id">Changes</ion-button>
-                  <ion-button size="small" color="danger" (click)="decide(gate, 'reject')" [disabled]="busy() === gate.id">Reject</ion-button>
-                </div>
-              }
-            </div>
-          </ion-item>
-        }
-      </ion-list>
-    </ion-card-content>
-  </ion-card>
+  <section class="panel">
+    <div class="panel__header">
+      <div>
+        <h2>Lifecycle</h2>
+        <p class="muted">Stage order is fixed; each transition needs its approval gate.</p>
+      </div>
+    </div>
+    <div class="panel__body">
+      @if ((d.run?.stages ?? []).length === 0) {
+        <p class="muted">No workflow run yet. Submit the project to open its gates.</p>
+      } @else {
+        <ol class="workflow-timeline">
+          @for (stage of d.run?.stages ?? []; track stage.stage) {
+            <li class="stage" [class.stage--current]="stage.stage === d.run?.currentStage">
+              <span class="stage__name">{{ stage.stage }}</span>
+              <span [class]="statusClass(stage.state)">{{ statusLabel(stage.state) }}</span>
+            </li>
+          }
+        </ol>
+      }
+    </div>
+  </section>
 
-  <ion-card>
-    <ion-card-header><ion-card-title>Systems of Record</ion-card-title></ion-card-header>
-    <ion-card-content>
-      <p class="muted">
-        Inherited from global settings unless overridden here.
-        @if (sorSaved()) { <ion-text color="success">Saved.</ion-text> }
-      </p>
-      <ion-list>
+  <section class="panel">
+    <div class="panel__header">
+      <div>
+        <h2>Approval gates</h2>
+        <p class="muted">{{ d.gates.length }} gate(s) · decisions are recorded on the audit trail.</p>
+      </div>
+    </div>
+    <div class="panel__body">
+      <ion-textarea
+        [(ngModel)]="comment"
+        [ngModelOptions]="{ standalone: true }"
+        label="Decision comment (optional)"
+        labelPlacement="stacked"
+        placeholder="Explain the decision for the audit record"
+        autoGrow
+        rows="2"
+        fill="outline"
+      ></ion-textarea>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Gate</th>
+            <th scope="col">Stage</th>
+            <th scope="col">Requires</th>
+            <th scope="col">Last decision</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="cell-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (gate of d.gates; track gate.id) {
+            <tr>
+              <td><span class="cell-primary">{{ gate.name }}</span></td>
+              <td style="text-transform: capitalize">{{ gate.lifecycleStage }}</td>
+              <td>{{ gate.requiredRole }}</td>
+              <td>
+                @if (gate.decisions.length > 0) {
+                  {{ gate.decisions[gate.decisions.length - 1].decision }}
+                  <span class="cell-sub">by {{ gate.decisions[gate.decisions.length - 1].approver }}</span>
+                } @else {
+                  <span class="muted">—</span>
+                }
+              </td>
+              <td><span [class]="statusClass(gate.state)">{{ statusLabel(gate.state) }}</span></td>
+              <td class="cell-actions">
+                @if (busy() === gate.id) {
+                  <ion-spinner name="dots"></ion-spinner>
+                } @else if (gate.state === 'AwaitingApproval') {
+                  <div class="decision-actions">
+                    <ion-button size="small" color="success" (click)="decide(gate, 'approve')">Approve</ion-button>
+                    <ion-button size="small" color="warning" fill="outline" (click)="decide(gate, 'request-changes')">
+                      Changes
+                    </ion-button>
+                    <ion-button size="small" color="danger" fill="outline" (click)="decide(gate, 'reject')">
+                      Reject
+                    </ion-button>
+                  </div>
+                } @else {
+                  <span class="muted">No action</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel__header">
+      <div>
+        <h2>Systems of Record</h2>
+        <p class="muted">
+          Inherited from global settings unless overridden here.
+          @if (sorSaved()) { <span class="pill pill--success">Saved</span> }
+        </p>
+      </div>
+      @if (canApprove('projects.manage')) {
+        <ion-button size="small" (click)="saveSystemsOfRecord()" [disabled]="busy() === 'systems-of-record'">
+          @if (busy() === 'systems-of-record') { <ion-spinner name="dots"></ion-spinner> } @else { Save }
+        </ion-button>
+      }
+    </div>
+    <div class="panel__body">
+      <ion-list lines="full">
         @for (entry of d.systemsOfRecord.catalog; track entry.key) {
-          <ion-item lines="full">
-            <ion-checkbox slot="start"
+          <ion-item>
+            <ion-checkbox
+              slot="start"
               [checked]="sorOverridden.has(entry.key)"
               [disabled]="!canApprove('projects.manage')"
-              (ionChange)="toggleSorOverride(entry.key, $event.detail.checked)"></ion-checkbox>
+              (ionChange)="toggleSorOverride(entry.key, $event.detail.checked)"
+            ></ion-checkbox>
             <ion-label>
-              <h3>
+              <h3 class="row">
                 {{ entry.label }}
-                @if (sorOverridden.has(entry.key)) { <ion-chip color="warning">override</ion-chip> }
-                @else { <ion-chip color="medium">inherited</ion-chip> }
+                @if (sorOverridden.has(entry.key)) {
+                  <span class="pill pill--warning">Override</span>
+                } @else {
+                  <span class="pill pill--neutral">Inherited</span>
+                }
               </h3>
+
               @if (sorOverridden.has(entry.key) && canApprove('projects.manage')) {
-                <ion-select [(ngModel)]="sorValues[entry.key].provider" interface="popover"
-                  label="System" labelPlacement="stacked" [ngModelOptions]="{ standalone: true }">
+                <ion-select
+                  [(ngModel)]="sorValues[entry.key].provider"
+                  interface="popover"
+                  label="System"
+                  labelPlacement="stacked"
+                  [ngModelOptions]="{ standalone: true }"
+                >
                   @for (p of entry.allowedProviders; track p) {
                     <ion-select-option [value]="p">{{ providerLabel(p) }}</ion-select-option>
                   }
                 </ion-select>
-                <ion-input [(ngModel)]="sorValues[entry.key].url" [placeholder]="entry.urlHint"
-                  label="URL" labelPlacement="stacked" [ngModelOptions]="{ standalone: true }"></ion-input>
+                <ion-input
+                  [(ngModel)]="sorValues[entry.key].url"
+                  [placeholder]="entry.urlHint"
+                  label="URL"
+                  labelPlacement="stacked"
+                  [ngModelOptions]="{ standalone: true }"
+                ></ion-input>
                 @if (entry.requiresProject) {
-                  <ion-input [(ngModel)]="sorValues[entry.key].project" placeholder="AgenticSDLC"
-                    label="Project / repository" labelPlacement="stacked"
-                    [ngModelOptions]="{ standalone: true }"></ion-input>
+                  <ion-input
+                    [(ngModel)]="sorValues[entry.key].project"
+                    placeholder="AgenticSDLC"
+                    label="Project / repository"
+                    labelPlacement="stacked"
+                    [ngModelOptions]="{ standalone: true }"
+                  ></ion-input>
                 }
               } @else {
                 <p class="muted">{{ providerLabel(d.systemsOfRecord.effective[entry.key].provider) }}</p>
                 @if (d.systemsOfRecord.effective[entry.key].url) {
-                  <p><a [href]="d.systemsOfRecord.effective[entry.key].url" target="_blank" rel="noopener noreferrer">
-                    {{ d.systemsOfRecord.effective[entry.key].url }}</a></p>
+                  <p>
+                    <a [href]="d.systemsOfRecord.effective[entry.key].url" target="_blank" rel="noopener noreferrer">
+                      {{ d.systemsOfRecord.effective[entry.key].url }}
+                    </a>
+                  </p>
                 }
                 @if (d.systemsOfRecord.effective[entry.key].project) {
                   <p class="muted">Project: {{ d.systemsOfRecord.effective[entry.key].project }}</p>
@@ -103,57 +208,109 @@
           </ion-item>
         }
       </ion-list>
-      @if (canApprove('projects.manage')) {
-        <ion-button size="small" (click)="saveSystemsOfRecord()" [disabled]="busy() === 'systems-of-record'">
-          @if (busy() === 'systems-of-record') { <ion-spinner name="dots"></ion-spinner> } @else { Save systems of record }
-        </ion-button>
-      }
-    </ion-card-content>
-  </ion-card>
+    </div>
+  </section>
 
-  <ion-card>
-    <ion-card-header><ion-card-title>Run agents</ion-card-title></ion-card-header>
-    <ion-card-content>
-      <p class="muted">Agents blocked by an unapproved gate return a 403 (enforced server-side).</p>
-      <ion-list>
-        @for (stage of ['plan','design','build','test','security','deploy']; track stage) {
-          @if (agentFor(stage); as agent) {
-            <ion-item>
-              <ion-label>
-                <h3>{{ agent.displayName }}</h3>
-                <p class="muted">{{ agent.modelDeploymentName }} via {{ agent.apimRoute }}</p>
-              </ion-label>
-              <ion-button slot="end" size="small" (click)="runAgent(stage)"
-                [disabled]="busy() === agent.agentId || !canApprove('agents.run')">
-                @if (busy() === agent.agentId) { <ion-spinner name="dots"></ion-spinner> } @else { Run }
-              </ion-button>
-            </ion-item>
+  <section class="panel">
+    <div class="panel__header">
+      <div>
+        <h2>Run agents</h2>
+        <p class="muted">Agents blocked by an unapproved gate return a 403 — enforced server-side.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Agent</th>
+            <th scope="col">Stage</th>
+            <th scope="col">Model &amp; route</th>
+            <th scope="col" class="cell-actions">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (stage of stages; track stage) {
+            @if (agentFor(stage); as agent) {
+              <tr>
+                <td><span class="cell-primary">{{ agent.displayName }}</span></td>
+                <td style="text-transform: capitalize">{{ stage }}</td>
+                <td>
+                  {{ agent.modelDeploymentName }}
+                  <span class="cell-sub mono">{{ agent.apimRoute }}</span>
+                </td>
+                <td class="cell-actions">
+                  <ion-button
+                    size="small"
+                    fill="outline"
+                    (click)="runAgent(stage)"
+                    [disabled]="busy() === agent.agentId || !canApprove('agents.run')"
+                  >
+                    @if (busy() === agent.agentId) { <ion-spinner name="dots"></ion-spinner> } @else { Run }
+                  </ion-button>
+                </td>
+              </tr>
+            }
           }
-        }
-      </ion-list>
-    </ion-card-content>
-  </ion-card>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-  <ion-card>
-    <ion-card-header><ion-card-title>Artifacts & agent runs</ion-card-title></ion-card-header>
-    <ion-card-content>
-      @if (d.agentRuns.length === 0) { <p class="muted">No agent runs yet.</p> }
-      <ion-list>
-        @for (run of d.agentRuns; track run.id) {
-          <ion-item lines="full">
-            <ion-label>
-              <h3>{{ run.agentId }} <ion-chip [color]="badgeColor(run.state)">{{ run.state }}</ion-chip></h3>
-              <p class="muted">{{ run.summary }}</p>
-              @if (run.guardrailFindings.length > 0) {
-                <p><ion-chip color="danger">{{ run.guardrailFindings.length }} guardrail finding(s)</ion-chip></p>
-              }
-              <p class="muted">tokens≈{{ run.tokenEstimate }} · {{ run.startedAt | date:'short' }}</p>
-            </ion-label>
-          </ion-item>
-        }
-      </ion-list>
-    </ion-card-content>
-  </ion-card>
+  <section class="panel">
+    <div class="panel__header">
+      <div>
+        <h2>Agent runs &amp; artifacts</h2>
+        <p class="muted">{{ d.agentRuns.length }} run(s) · {{ d.artifacts.length }} artifact(s)</p>
+      </div>
+    </div>
+
+    @if (d.agentRuns.length === 0) {
+      <div class="empty-state">
+        <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
+        <h3>No agent runs yet</h3>
+        <p>Approve the relevant gate, then run a lifecycle agent above.</p>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th scope="col">Agent</th>
+              <th scope="col">Summary</th>
+              <th scope="col" class="num">Tokens</th>
+              <th scope="col">Guardrails</th>
+              <th scope="col">Started</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (run of d.agentRuns; track run.id) {
+              <tr>
+                <td><span class="cell-primary">{{ run.agentId }}</span></td>
+                <td>{{ run.summary || '—' }}</td>
+                <td class="num">{{ run.tokenEstimate }}</td>
+                <td>
+                  @if (run.guardrailFindings.length > 0) {
+                    <span class="pill pill--danger">{{ run.guardrailFindings.length }}</span>
+                  } @else {
+                    <span class="pill pill--success">Clean</span>
+                  }
+                </td>
+                <td>{{ run.startedAt | date: 'short' }}</td>
+                <td><span [class]="statusClass(run.state)">{{ statusLabel(run.state) }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
 } @else {
-  <ion-spinner></ion-spinner>
+  <div class="panel">
+    <div class="panel__body">
+      <div class="skeleton-row" style="width: 40%"></div>
+      <div class="skeleton-row" style="width: 65%"></div>
+      <div class="skeleton-row" style="width: 55%"></div>
+    </div>
+  </div>
 }

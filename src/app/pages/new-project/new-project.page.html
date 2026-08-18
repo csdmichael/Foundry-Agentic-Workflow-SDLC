@@ -1,13 +1,27 @@
-<h1>New Project</h1>
-<ion-progress-bar [value]="progress()"></ion-progress-bar>
-<p class="muted">Step {{ step() }} of {{ totalSteps }}</p>
+<header class="page-header">
+  <div class="page-header__text">
+    <h1>New Project</h1>
+    <p class="muted">Step {{ step() }} of {{ totalSteps }} — {{ stepTitle() }}</p>
+  </div>
+</header>
+
+<ion-progress-bar [value]="progress()" aria-label="Wizard progress"></ion-progress-bar>
 
 @if (error()) {
-  <ion-text color="danger"><p>{{ error() }}</p></ion-text>
+  <div class="alert alert--danger ion-margin-top" role="alert">
+    <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+    <p>{{ error() }}</p>
+  </div>
 }
 
-<ion-card>
-  <ion-card-content>
+<div class="panel ion-margin-top">
+  <div class="panel__header">
+    <div>
+      <h2>{{ stepTitle() }}</h2>
+      <p class="muted">{{ stepHint() }}</p>
+    </div>
+  </div>
+  <div class="panel__body">
     @switch (step()) {
       @case (1) {
         <ion-card-header><ion-card-title>Project details</ion-card-title></ion-card-header>
@@ -154,15 +168,15 @@
       }
     }
 
-    <div class="ion-margin-top" style="display:flex;gap:8px;justify-content:space-between;">
-      <ion-button fill="outline" (click)="prev()" [disabled]="step() === 1">Back</ion-button>
+    <div class="ion-margin-top row--between">
+      <ion-button fill="outline" size="small" (click)="prev()" [disabled]="step() === 1">Back</ion-button>
       @if (step() < totalSteps) {
-        <ion-button (click)="next()" [disabled]="!canContinue()">Continue</ion-button>
+        <ion-button size="small" (click)="next()" [disabled]="!canContinue()">Continue</ion-button>
       } @else {
-        <ion-button color="success" (click)="submit()" [disabled]="saving()">
+        <ion-button size="small" color="success" (click)="submit()" [disabled]="saving()">
           {{ saving() ? 'Submitting…' : 'Create & submit for approval' }}
         </ion-button>
       }
     </div>
-  </ion-card-content>
-</ion-card>
+  </div>
+</div>

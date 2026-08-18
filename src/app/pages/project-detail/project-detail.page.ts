@@ -3,14 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonButton,
-  IonList, IonItem, IonLabel, IonChip, IonTextarea, IonSpinner, IonText,
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonIcon,
+  IonList, IonItem, IonLabel, IonTextarea, IonSpinner,
   IonCheckbox, IonInput, IonSelect, IonSelectOption,
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { AgentDefinition, ApprovalGate, ProjectDetail, SystemOfRecordMap } from '../../models/models';
 import { PROVIDER_LABELS } from '../../config/ui.config';
+import { statusClass, statusLabel } from '../../shared/status.util';
 
 /**
  * Project detail. Shows lifecycle stage, approval gates, backlog/artifacts,
@@ -22,13 +23,18 @@ import { PROVIDER_LABELS } from '../../config/ui.config';
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonButton,
-    IonList, IonItem, IonLabel, IonChip, IonTextarea, IonSpinner, IonText,
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonButton, IonIcon,
+    IonList, IonItem, IonLabel, IonTextarea, IonSpinner,
     IonCheckbox, IonInput, IonSelect, IonSelectOption,
   ],
   templateUrl: './project-detail.page.html',
+  styles: [`
+    .decision-actions { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  `],
 })
 export class ProjectDetailPage implements OnInit {
+  readonly stages = ['plan', 'design', 'build', 'test', 'security', 'deploy'];
+
   detail = signal<ProjectDetail | null>(null);
   agents = signal<AgentDefinition[]>([]);
   busy = signal<string | null>(null);
@@ -38,6 +44,9 @@ export class ProjectDetailPage implements OnInit {
   sorValues: SystemOfRecordMap = {};
   sorOverridden = new Set<string>();
   sorSaved = signal(false);
+
+  readonly statusClass = statusClass;
+  readonly statusLabel = statusLabel;
 
   readonly canApprove = this.auth.hasCapability.bind(this.auth);
 
@@ -119,13 +128,6 @@ export class ProjectDetailPage implements OnInit {
     } finally {
       this.busy.set(null);
     }
-  }
-
-  badgeColor(state: string): string {
-    if (state === 'Approved' || state === 'Completed') return 'success';
-    if (state === 'Rejected' || state === 'Failed' || state === 'Blocked') return 'danger';
-    if (state === 'AwaitingApproval' || state === 'ChangesRequested') return 'warning';
-    return 'medium';
   }
 
   private msg(err: unknown): string {
