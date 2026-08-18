@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import {
   IonContent, IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent,
   IonItem, IonLabel, IonInput, IonButton, IonText, IonSpinner, IonIcon, IonNote,
@@ -31,7 +31,11 @@ export class LoginPage {
   error = signal<string | null>(null);
   info = signal<string | null>(null);
 
-  constructor(private auth: AuthService, private router: Router) {}
+  constructor(private auth: AuthService, private router: Router, route: ActivatedRoute) {
+    if (route.snapshot.queryParamMap.get('expired')) {
+      this.info.set('Your session expired. Sign in again to continue.');
+    }
+  }
 
   quickFill(email: string): void {
     if (this.isBusy()) return;

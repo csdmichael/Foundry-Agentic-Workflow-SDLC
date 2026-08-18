@@ -22,6 +22,8 @@ interface AuthMeta {
   otpDevBypass: boolean;
 }
 
+const ENTRA_SCOPES = ['openid', 'profile', 'email'];
+
 /**
  * Authentication state and flows for the UI. Supports Email OTP end-to-end and
  * exposes Entra ID metadata for MSAL integration (bearer token acquisition is
@@ -34,6 +36,7 @@ export class AuthService {
   private _metaCache?: AuthMeta;
   private msal?: IPublicClientApplication;
   private entraLogin?: Promise<AuthUser>;
+  private renewal?: Promise<string | null>;
 
   readonly user = this._user.asReadonly();
   readonly capabilities = this._capabilities.asReadonly();
@@ -111,7 +114,7 @@ export class AuthService {
     }
     const msal = await this.getMsal(meta);
     const result = await msal.loginPopup({
-      scopes: ['openid', 'profile', 'email'],
+      scopes: ENTRA_SCOPES,
       loginHint,
     });
     const idToken = result.idToken;
@@ -121,9 +124,45 @@ export class AuthService {
         headers: { Authorization: `Bearer ${idToken}` },
       }),
     );
+    if (result.account) localStorage.setItem(uiConfig.accountStorageKey, result.account.homeAccountId);
     this.persistSession(idToken, me.user);
     await this.loadCapabilities();
     return me.user;
+  }
+
+  /**
+   * Silently renews the Entra ID token. Entra ID tokens expire after roughly an
+   * hour, so a long-lived tab otherwise keeps sending a dead bearer token.
+   * Returns null when renewal is impossible (OTP/guest session, no cached
+   * account, or consent required) — the caller should then end the session.
+   */
+  renewToken(): Promise<string | null> {
+    if (this.renewal) return this.renewal;
+
+    const renewal = this.performRenewal();
+    this.renewal = renewal.finally(() => {
+      this.renewal = undefined;
+    });
+    return this.renewal;
+  }
+
+  private async performRenewal(): Promise<string | null> {
+    const user = this._user();
+    if (user?.provider !== 'entra-id') return null;
+    try {
+      const meta = await this.getMeta();
+      if (!meta.entraEnabled) return null;
+      const msal = await this.getMsal(meta);
+      const accountId = localStorage.getItem(uiConfig.accountStorageKey);
+      const account =
+        (accountId ? msal.getAccount({ homeAccountId: accountId }) : null) ?? msal.getAllAccounts()[0] ?? null;
+      if (!account) return null;
+      const result = await msal.acquireTokenSilent({ scopes: ENTRA_SCOPES, account });
+      this.persistSession(result.idToken, user);
+      return result.idToken;
+    } catch {
+      return null;
+    }
   }
 
   private async getMsal(meta: AuthMeta): Promise<IPublicClientApplication> {
@@ -158,6 +197,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(uiConfig.tokenStorageKey);
     localStorage.removeItem(uiConfig.userStorageKey);
+    localStorage.removeItem(uiConfig.accountStorageKey);
     this._user.set(null);
     this._capabilities.set([]);
   }

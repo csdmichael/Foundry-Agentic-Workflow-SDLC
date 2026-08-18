@@ -37,6 +37,7 @@ export const uiConfig = {
   apiBaseUrl: resolveApiBaseUrl(),
   tokenStorageKey: 'agentic_sdlc_token',
   userStorageKey: 'agentic_sdlc_user',
+  accountStorageKey: 'agentic_sdlc_account',
   correlationHeader: 'x-correlation-id',
 
   identity: {
