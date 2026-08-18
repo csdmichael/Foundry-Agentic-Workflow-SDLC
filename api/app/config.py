@@ -30,6 +30,7 @@ api_config = _read_json(SRC / "config" / "api.config.json")
 apim_config = _read_json(SRC / "config" / "apim.config.json")
 integrations_config = _read_json(SRC / "config" / "integrations.config.json")
 guardrails_config = _read_json(SRC / "config" / "guardrails.config.json")
+systems_of_record_config = _read_json(SRC / "config" / "systems-of-record.config.json")
 persistence_config = _read_json(SRC / "persistence" / "config" / "persistence.config.json")
 agents_config = _read_json(SRC / "agents" / "config" / "agents.config.json")
 seed_users = _read_json(SRC / "config" / "seed-users.json")["seedUsers"]
@@ -44,6 +45,7 @@ CONFIG = {
     "apim": apim_config,
     "integrations": integrations_config,
     "guardrails": guardrails_config,
+    "systemsOfRecord": systems_of_record_config,
     "persistence": persistence_config,
     "agents": agents_config,
     "seedUsers": seed_users,

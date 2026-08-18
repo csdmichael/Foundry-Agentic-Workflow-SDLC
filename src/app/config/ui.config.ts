@@ -97,6 +97,7 @@ export const uiConfig = {
       items: [
         { title: 'User Management', path: '/admin/users', icon: 'people-outline', requiredCapabilities: ['users.manage'] },
         { title: 'Agent Configuration', path: '/admin/agents', icon: 'construct-outline', requiredCapabilities: ['agents.configure'] },
+        { title: 'Global Settings', path: '/admin/settings', icon: 'options-outline', requiredCapabilities: ['config.manage'] },
         { title: 'APIM & Config', path: '/admin/config', icon: 'settings-outline', requiredCapabilities: ['config.manage'] },
       ],
     },
@@ -119,4 +120,16 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Admin',
   app_owner: 'App Owner',
   guest: 'Guest (read-only)',
+};
+
+/** Display names for System of Record providers (keys come from the API catalog). */
+export const PROVIDER_LABELS: Record<string, string> = {
+  sharepoint: 'SharePoint',
+  'ado-wiki': 'Azure DevOps Wiki',
+  'github-wiki': 'GitHub Wiki',
+  'azure-devops': 'Azure DevOps',
+  'github-issues': 'GitHub Issues',
+  'github-actions': 'GitHub Actions',
+  github: 'GitHub',
+  'azure-repos': 'Azure Repos',
 };

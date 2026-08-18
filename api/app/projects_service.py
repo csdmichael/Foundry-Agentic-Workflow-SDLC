@@ -1,7 +1,7 @@
 """Projects service (mirror of projects.service.ts)."""
 from typing import Dict, List, Optional
 
-from . import approvals, audit_service
+from . import approvals, audit_service, settings_service
 from .errors import ApiError
 from .persistence import get_repository
 from .util import new_id, now_iso
@@ -18,6 +18,7 @@ def _run_repo():
 
 def create(body: Dict, user: Dict, correlation_id: str) -> Dict:
     now = now_iso()
+    overrides = settings_service.normalize(body.get("systemsOfRecord"), partial=True)
     project = {
         "id": new_id(),
         "name": body.get("name", ""),
@@ -30,6 +31,7 @@ def create(body: Dict, user: Dict, correlation_id: str) -> Dict:
         "gitHubRepo": body.get("gitHubRepo", ""),
         "targetEnvironment": body.get("targetEnvironment", "Dev"),
         "selectedAgentIds": body.get("selectedAgentIds", []),
+        "systemsOfRecord": overrides,
         "currentStage": "plan",
         "state": "Draft",
         "createdBy": user["email"],
@@ -44,7 +46,27 @@ def create(body: Dict, user: Dict, correlation_id: str) -> Dict:
         target_type="project",
         target_id=project["id"],
         correlation_id=correlation_id,
-        details={"name": project["name"]},
+        details={"name": project["name"], "systemsOfRecordOverrides": sorted(overrides)},
+    )
+    return project
+
+
+def update_systems_of_record(project_id: str, raw: Optional[Dict], user: Dict, correlation_id: str) -> Dict:
+    project = get_by_id(project_id)
+    if not project:
+        raise ApiError(404, "Project not found")
+    overrides = settings_service.normalize(raw, partial=True)
+    project["systemsOfRecord"] = overrides
+    project["updatedAt"] = now_iso()
+    _project_repo().upsert(project)
+    audit_service.record(
+        actor_type="user",
+        actor=user["email"],
+        action="project.systems-of-record.update",
+        target_type="project",
+        target_id=project_id,
+        correlation_id=correlation_id,
+        details={"overriddenKeys": sorted(overrides)},
     )
     return project
 

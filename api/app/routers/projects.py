@@ -3,9 +3,9 @@ from typing import Optional
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from .. import approvals, orchestrator, projects_service
+from .. import approvals, orchestrator, projects_service, settings_service
 from ..errors import ApiError
-from ..models import AgentRunBody, ProjectCreateBody
+from ..models import AgentRunBody, ProjectCreateBody, SystemsOfRecordBody
 from ..security import correlation_id, require
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
@@ -25,7 +25,35 @@ def get_project(project_id: str, user: dict = Depends(require("projects.read")))
     artifacts = orchestrator.list_artifacts(project["id"])
     gates = approvals.list_for_run(run["id"]) if run else []
     agent_runs = orchestrator.list_runs(run["id"]) if run else []
-    return {"project": project, "run": run, "gates": gates, "artifacts": artifacts, "agentRuns": agent_runs}
+    return {
+        "project": project,
+        "run": run,
+        "gates": gates,
+        "artifacts": artifacts,
+        "agentRuns": agent_runs,
+        "systemsOfRecord": {
+            "catalog": settings_service.catalog(),
+            "effective": settings_service.effective_for_project(project),
+            "global": settings_service.global_settings(),
+            "overriddenKeys": settings_service.overridden_keys(project),
+        },
+    }
+
+
+@router.put("/{project_id}/systems-of-record")
+def update_project_systems_of_record(
+    project_id: str,
+    body: SystemsOfRecordBody,
+    user: dict = Depends(require("projects.manage")),
+    corr: str = Depends(correlation_id),
+):
+    payload = {key: entry.model_dump() for key, entry in body.systemsOfRecord.items()}
+    project = projects_service.update_systems_of_record(project_id, payload, user, corr)
+    return {
+        "project": project,
+        "effective": settings_service.effective_for_project(project),
+        "overriddenKeys": settings_service.overridden_keys(project),
+    }
 
 
 @router.post("")

@@ -1,0 +1,72 @@
+{
+  "$comment": "System of Record defaults (non-secret). 'catalog' drives UI rendering and server-side provider validation; 'defaults' seeds the global settings that every project inherits unless it overrides them.",
+  "catalog": [
+    {
+      "key": "documentation",
+      "label": "Documentation",
+      "description": "Where approved requirements, architecture, and design artifacts are published.",
+      "allowedProviders": ["sharepoint", "ado-wiki", "github-wiki"],
+      "requiresProject": false,
+      "urlHint": "https://tenant.sharepoint.com/teams/{team}/Shared Documents/..."
+    },
+    {
+      "key": "workItemTracking",
+      "label": "Work Items Tracking",
+      "description": "Where Epics, Features, User Stories, and Tasks are created.",
+      "allowedProviders": ["azure-devops", "github-issues"],
+      "requiresProject": true,
+      "urlHint": "https://dev.azure.com/{orgName}"
+    },
+    {
+      "key": "testManagement",
+      "label": "Test Cases & Test Plans Tracking",
+      "description": "Where test plans, suites, and cases are managed.",
+      "allowedProviders": ["azure-devops", "github-issues"],
+      "requiresProject": true,
+      "urlHint": "https://dev.azure.com/{orgName}"
+    },
+    {
+      "key": "buildPipelines",
+      "label": "Code Build / Pipelines",
+      "description": "Where CI/CD pipelines are defined and executed.",
+      "allowedProviders": ["azure-devops", "github-actions"],
+      "requiresProject": true,
+      "urlHint": "https://dev.azure.com/{orgName} or https://github.com/{orgName}"
+    },
+    {
+      "key": "sourceCodeOrg",
+      "label": "Source Code Org",
+      "description": "Organization that owns the generated repositories.",
+      "allowedProviders": ["github", "azure-repos"],
+      "requiresProject": false,
+      "urlHint": "https://github.com/{orgName}"
+    }
+  ],
+  "defaults": {
+    "documentation": {
+      "provider": "sharepoint",
+      "url": "https://microsoft.sharepoint.com/teams/ManufacturingMobility199/Shared Documents/PODs/POD-27/Technology/SDLC Agentic Workflow/Projects",
+      "project": ""
+    },
+    "workItemTracking": {
+      "provider": "azure-devops",
+      "url": "https://dev.azure.com/csdmichael",
+      "project": "AgenticSDLC"
+    },
+    "testManagement": {
+      "provider": "azure-devops",
+      "url": "https://dev.azure.com/csdmichael",
+      "project": "AgenticSDLC"
+    },
+    "buildPipelines": {
+      "provider": "azure-devops",
+      "url": "https://dev.azure.com/csdmichael",
+      "project": "AgenticSDLC"
+    },
+    "sourceCodeOrg": {
+      "provider": "github",
+      "url": "https://github.com/csdmichael",
+      "project": ""
+    }
+  }
+}

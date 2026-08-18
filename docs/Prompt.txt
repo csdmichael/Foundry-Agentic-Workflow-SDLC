@@ -315,3 +315,17 @@ Azure Resources:
 Add licence file MIT for Michael Yaacoub @ Microsoft
 Add documentation attached under docs and add readme with TOC including attached architecture diagram displayed in readme in early sections and dataflow diagram attached also
 build git workflows by component (ui, api, etc) to deploy to azure based on modified component only
+
+Add the following functionalities:
+
+Global settings that apply for all projects unless overwritten at project level:
+- Add System of Record for the following:
+  - Documentation: Default is a SharePoint Url
+  - Work Items Tracking: Default is ADO Url (https://dev.azure.com/{orgName})
+  - Test Cases and test plans Tracking: Default is ADO Url (https://dev.azure.com/{orgName})
+  - Code Build / Pipelines: Default is ADO Url or pick github actions
+  - Source Code Org: Default gitHub Org (https://github.com/{orgName})
+
+  At project level, allow to overwrite global settings. Default pre-populate with global settings
+
+  For Agentic Workflow using Microsoft Agent Framework in Foundry, mention the pattern used from (C:\Projects\Foundry\Foundry-Agentic-Workflow-SDLC\docs\MultiAgent Workflow using Microsoft Agent Framework.jpg) and add this diagram in main readme, describe it as approach used and pattern chosen for SDLC life-cycle.

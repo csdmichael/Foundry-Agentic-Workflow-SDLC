@@ -77,6 +77,42 @@
         </ion-list>
       }
       @case (4) {
+        <ion-card-header><ion-card-title>Systems of Record</ion-card-title></ion-card-header>
+        <p class="muted">
+          Pre-populated from the global settings. Toggle <strong>Override</strong> on any row this project
+          should track somewhere else; untouched rows keep inheriting the global value.
+        </p>
+        <ion-list>
+          @for (entry of sorCatalog(); track entry.key) {
+            <ion-item lines="full">
+              <ion-checkbox slot="start"
+                [checked]="sorOverridden.has(entry.key)"
+                (ionChange)="toggleSorOverride(entry.key, $event.detail.checked)"></ion-checkbox>
+              <ion-label>
+                <h3>{{ entry.label }}</h3>
+                @if (sorOverridden.has(entry.key)) {
+                  <ion-select [(ngModel)]="sorValues[entry.key].provider" interface="popover" label="System" labelPlacement="stacked">
+                    @for (p of entry.allowedProviders; track p) {
+                      <ion-select-option [value]="p">{{ providerLabel(p) }}</ion-select-option>
+                    }
+                  </ion-select>
+                  <ion-input [(ngModel)]="sorValues[entry.key].url" [placeholder]="entry.urlHint"
+                    label="URL" labelPlacement="stacked"></ion-input>
+                  @if (entry.requiresProject) {
+                    <ion-input [(ngModel)]="sorValues[entry.key].project" placeholder="AgenticSDLC"
+                      label="Project / repository" labelPlacement="stacked"></ion-input>
+                  }
+                } @else {
+                  <p class="muted">
+                    Inherited: {{ providerLabel(sorValues[entry.key].provider) }} · {{ sorValues[entry.key].url || '—' }}
+                  </p>
+                }
+              </ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      }
+      @case (5) {
         <ion-card-header><ion-card-title>Lifecycle agents</ion-card-title></ion-card-header>
         <p class="muted">Select which specialized Foundry agents run in this project. Each agent uses the model shown; approval-gated agents will pause for a human decision.</p>
         <ion-list>
@@ -96,7 +132,7 @@
           }
         </ion-list>
       }
-      @case (5) {
+      @case (6) {
         <ion-card-header><ion-card-title>Confirm & submit</ion-card-title></ion-card-header>
         <ion-list>
           <ion-item><ion-label>Name</ion-label><ion-note slot="end">{{ model.name }}</ion-note></ion-item>
@@ -105,6 +141,10 @@
           <ion-item><ion-label>ADO</ion-label><ion-note slot="end">{{ model.adoProject || '—' }}</ion-note></ion-item>
           <ion-item><ion-label>GitHub</ion-label><ion-note slot="end">{{ model.gitHubRepo || '—' }}</ion-note></ion-item>
           <ion-item><ion-label>Environment</ion-label><ion-note slot="end">{{ model.targetEnvironment }}</ion-note></ion-item>
+          <ion-item>
+            <ion-label>Systems of Record overridden</ion-label>
+            <ion-note slot="end">{{ sorOverridden.size === 0 ? 'None (all inherited)' : sorOverridden.size }}</ion-note>
+          </ion-item>
           <ion-item><ion-label>Agents selected</ion-label><ion-note slot="end">{{ selectedAgents.size }}</ion-note></ion-item>
         </ion-list>
         <ion-note color="primary">

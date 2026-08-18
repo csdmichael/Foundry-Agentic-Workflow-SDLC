@@ -8,13 +8,17 @@ import {
   IonText, IonChip, IonProgressBar, IonIcon,
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../services/api.service';
-import { AgentDefinition, ProjectSource, RequirementSourceKind, TargetEnvironment } from '../../models/models';
+import {
+  AgentDefinition, ProjectSource, RequirementSourceKind, SystemOfRecordCatalogEntry,
+  SystemOfRecordMap, TargetEnvironment,
+} from '../../models/models';
+import { PROVIDER_LABELS } from '../../config/ui.config';
 
 /**
  * New Project wizard. Collects intake details, requirement sources, ADO/GitHub
- * targets, environment, and the lifecycle agents to run. On submit it creates
- * the project (Draft) and submits it for Plan and Scope approval — no
- * downstream agent runs until that gate is approved.
+ * targets, environment, systems of record, and the lifecycle agents to run. On
+ * submit it creates the project (Draft) and submits it for Plan and Scope
+ * approval — no downstream agent runs until that gate is approved.
  */
 @Component({
   selector: 'app-new-project',
@@ -29,12 +33,17 @@ import { AgentDefinition, ProjectSource, RequirementSourceKind, TargetEnvironmen
 })
 export class NewProjectPage implements OnInit {
   step = signal(1);
-  readonly totalSteps = 5;
+  readonly totalSteps = 6;
   saving = signal(false);
   error = signal<string | null>(null);
 
   agents = signal<AgentDefinition[]>([]);
   selectedAgents = new Set<string>();
+
+  sorCatalog = signal<SystemOfRecordCatalogEntry[]>([]);
+  /** Pre-populated from global settings; only rows toggled on are sent as overrides. */
+  sorValues: SystemOfRecordMap = {};
+  sorOverridden = new Set<string>();
 
   readonly sourceKinds: { value: RequirementSourceKind; label: string }[] = [
     { value: 'sharepoint', label: 'SharePoint' },
@@ -59,9 +68,10 @@ export class NewProjectPage implements OnInit {
   constructor(private api: ApiService, private router: Router) {}
 
   async ngOnInit(): Promise<void> {
-    const [agents, defaults] = await Promise.all([
+    const [agents, defaults, sor] = await Promise.all([
       this.api.listAgents(),
       this.api.getProjectDefaults().catch(() => null),
+      this.api.getSystemsOfRecord().catch(() => null),
     ]);
     const enabled = agents.filter((a) => a.enabled);
     this.agents.set(enabled);
@@ -71,6 +81,19 @@ export class NewProjectPage implements OnInit {
       this.model.adoProject = defaults.adoProject;
       this.model.gitHubRepo = defaults.gitHubOrg ? `${defaults.gitHubOrg}/` : '';
     }
+    if (sor) {
+      this.sorCatalog.set(sor.catalog);
+      this.sorValues = structuredClone(sor.settings);
+    }
+  }
+
+  providerLabel(provider: string): string {
+    return PROVIDER_LABELS[provider] ?? provider;
+  }
+
+  toggleSorOverride(key: string, checked: boolean): void {
+    if (checked) this.sorOverridden.add(key);
+    else this.sorOverridden.delete(key);
   }
 
   progress(): number {
@@ -107,6 +130,10 @@ export class NewProjectPage implements OnInit {
       const sources: ProjectSource[] = [
         { kind: this.model.sourceKind, reference: this.model.sourceReference || '(local upload pending)' },
       ];
+      const systemsOfRecord: SystemOfRecordMap = {};
+      this.sorOverridden.forEach((key) => {
+        if (this.sorValues[key]) systemsOfRecord[key] = this.sorValues[key];
+      });
       const project = await this.api.createProject({
         name: this.model.name,
         description: this.model.description,
@@ -118,6 +145,7 @@ export class NewProjectPage implements OnInit {
         gitHubRepo: this.model.gitHubRepo,
         targetEnvironment: this.model.targetEnvironment,
         selectedAgentIds: Array.from(this.selectedAgents),
+        systemsOfRecord,
       });
       // Submit for Plan and Scope approval immediately.
       await this.api.submitProject(project.id);

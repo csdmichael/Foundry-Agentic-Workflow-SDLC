@@ -9,6 +9,9 @@ import {
   AuditLog,
   Project,
   ProjectDetail,
+  ProjectSystemsOfRecord,
+  SystemOfRecordMap,
+  SystemsOfRecordSettings,
   User,
   WorkflowRun,
 } from '../models/models';
@@ -91,6 +94,27 @@ export class ApiService {
     return firstValueFrom(
       this.http.get<{ adoOrganization: string; adoProject: string; gitHubOrg: string; gitHubApiBaseUrl: string }>(
         `${this.base}/config/project-defaults`,
+      ),
+    );
+  }
+
+  // Systems of Record — global settings inherited by every project
+  getSystemsOfRecord(): Promise<SystemsOfRecordSettings> {
+    return firstValueFrom(this.http.get<SystemsOfRecordSettings>(`${this.base}/settings/systems-of-record`));
+  }
+  updateSystemsOfRecord(systemsOfRecord: SystemOfRecordMap): Promise<SystemsOfRecordSettings> {
+    return firstValueFrom(
+      this.http.put<SystemsOfRecordSettings>(`${this.base}/settings/systems-of-record`, { systemsOfRecord }),
+    );
+  }
+  updateProjectSystemsOfRecord(
+    projectId: string,
+    systemsOfRecord: SystemOfRecordMap,
+  ): Promise<{ project: Project } & Pick<ProjectSystemsOfRecord, 'effective' | 'overriddenKeys'>> {
+    return firstValueFrom(
+      this.http.put<{ project: Project } & Pick<ProjectSystemsOfRecord, 'effective' | 'overriddenKeys'>>(
+        `${this.base}/projects/${projectId}/systems-of-record`,
+        { systemsOfRecord },
       ),
     );
   }

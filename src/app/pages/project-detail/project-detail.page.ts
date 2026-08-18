@@ -3,25 +3,28 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
-  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonButton, IonIcon,
-  IonList, IonItem, IonLabel, IonNote, IonChip, IonTextarea, IonSpinner, IonText,
+  IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonButton,
+  IonList, IonItem, IonLabel, IonChip, IonTextarea, IonSpinner, IonText,
+  IonCheckbox, IonInput, IonSelect, IonSelectOption,
 } from '@ionic/angular/standalone';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
-import { AgentDefinition, ApprovalGate, ProjectDetail } from '../../models/models';
+import { AgentDefinition, ApprovalGate, ProjectDetail, SystemOfRecordMap } from '../../models/models';
+import { PROVIDER_LABELS } from '../../config/ui.config';
 
 /**
  * Project detail. Shows lifecycle stage, approval gates, backlog/artifacts,
- * repo/pipeline links, and agent runs. Approval actions and agent runs are
- * gated by capabilities on the UI and re-checked server-side.
+ * repo/pipeline links, systems of record, and agent runs. Approval actions and
+ * agent runs are gated by capabilities on the UI and re-checked server-side.
  */
 @Component({
   selector: 'app-project-detail',
   standalone: true,
   imports: [
     CommonModule, FormsModule,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonButton, IonIcon,
-    IonList, IonItem, IonLabel, IonNote, IonChip, IonTextarea, IonSpinner, IonText,
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonBadge, IonButton,
+    IonList, IonItem, IonLabel, IonChip, IonTextarea, IonSpinner, IonText,
+    IonCheckbox, IonInput, IonSelect, IonSelectOption,
   ],
   templateUrl: './project-detail.page.html',
 })
@@ -31,6 +34,10 @@ export class ProjectDetailPage implements OnInit {
   busy = signal<string | null>(null);
   error = signal<string | null>(null);
   comment = '';
+
+  sorValues: SystemOfRecordMap = {};
+  sorOverridden = new Set<string>();
+  sorSaved = signal(false);
 
   readonly canApprove = this.auth.hasCapability.bind(this.auth);
 
@@ -43,7 +50,42 @@ export class ProjectDetailPage implements OnInit {
   }
 
   private async reload(id: string): Promise<void> {
-    this.detail.set(await this.api.getProject(id));
+    const detail = await this.api.getProject(id);
+    this.detail.set(detail);
+    // Editors start from the effective values so an override begins where inheritance left off.
+    this.sorValues = structuredClone(detail.systemsOfRecord.effective);
+    this.sorOverridden = new Set(detail.systemsOfRecord.overriddenKeys);
+  }
+
+  providerLabel(provider: string): string {
+    return PROVIDER_LABELS[provider] ?? provider;
+  }
+
+  toggleSorOverride(key: string, checked: boolean): void {
+    if (checked) this.sorOverridden.add(key);
+    else this.sorOverridden.delete(key);
+    this.sorSaved.set(false);
+  }
+
+  async saveSystemsOfRecord(): Promise<void> {
+    const project = this.detail()?.project;
+    if (!project) return;
+    this.error.set(null);
+    this.sorSaved.set(false);
+    this.busy.set('systems-of-record');
+    try {
+      const overrides: SystemOfRecordMap = {};
+      this.sorOverridden.forEach((key) => {
+        if (this.sorValues[key]) overrides[key] = this.sorValues[key];
+      });
+      await this.api.updateProjectSystemsOfRecord(project.id, overrides);
+      await this.reload(project.id);
+      this.sorSaved.set(true);
+    } catch (err) {
+      this.error.set(this.msg(err));
+    } finally {
+      this.busy.set(null);
+    }
   }
 
   agentFor(stage: string): AgentDefinition | undefined {

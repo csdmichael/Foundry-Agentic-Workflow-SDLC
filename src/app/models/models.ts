@@ -43,6 +43,40 @@ export interface ProjectSource {
   uploadedFiles?: string[];
 }
 
+/** System of Record keys — mirrors api/src/config/systems-of-record.config.json. */
+export type SystemOfRecordKey =
+  | 'documentation' | 'workItemTracking' | 'testManagement' | 'buildPipelines' | 'sourceCodeOrg';
+
+export interface SystemOfRecordCatalogEntry {
+  key: SystemOfRecordKey;
+  label: string;
+  description: string;
+  allowedProviders: string[];
+  requiresProject: boolean;
+  urlHint: string;
+}
+
+export interface SystemOfRecord {
+  provider: string;
+  url: string;
+  project: string;
+}
+
+export type SystemOfRecordMap = Record<string, SystemOfRecord>;
+
+export interface SystemsOfRecordSettings {
+  catalog: SystemOfRecordCatalogEntry[];
+  settings: SystemOfRecordMap;
+  configDefaults?: SystemOfRecordMap;
+}
+
+export interface ProjectSystemsOfRecord {
+  catalog: SystemOfRecordCatalogEntry[];
+  effective: SystemOfRecordMap;
+  global: SystemOfRecordMap;
+  overriddenKeys: string[];
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -55,6 +89,8 @@ export interface Project {
   gitHubRepo: string;
   targetEnvironment: TargetEnvironment;
   selectedAgentIds: string[];
+  /** Only the keys this project overrides; everything else inherits global settings. */
+  systemsOfRecord?: SystemOfRecordMap;
   currentStage: LifecycleStage;
   state: WorkflowState;
   createdBy: string;
@@ -185,4 +221,5 @@ export interface ProjectDetail {
   gates: ApprovalGate[];
   artifacts: Artifact[];
   agentRuns: AgentRun[];
+  systemsOfRecord: ProjectSystemsOfRecord;
 }

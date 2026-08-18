@@ -1,5 +1,5 @@
 """Request body models (validated at the API boundary)."""
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -19,6 +19,16 @@ class ProjectSourceBody(BaseModel):
     uploadedFiles: Optional[List[str]] = None
 
 
+class SystemOfRecordBody(BaseModel):
+    provider: str = ""
+    url: str = ""
+    project: str = ""
+
+
+class SystemsOfRecordBody(BaseModel):
+    systemsOfRecord: Dict[str, SystemOfRecordBody] = {}
+
+
 class ProjectCreateBody(BaseModel):
     name: str = ""
     description: str = ""
@@ -30,6 +40,8 @@ class ProjectCreateBody(BaseModel):
     gitHubRepo: str = ""
     targetEnvironment: str = "Dev"
     selectedAgentIds: List[str] = []
+    # Only the keys the project actually overrides; the rest inherit global settings.
+    systemsOfRecord: Dict[str, SystemOfRecordBody] = {}
 
 
 class AgentRunBody(BaseModel):

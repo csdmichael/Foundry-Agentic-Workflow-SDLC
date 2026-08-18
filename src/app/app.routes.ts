@@ -72,6 +72,11 @@ export const routes: Routes = [
         canActivate: [requireCapabilities('config.manage')],
       },
       {
+        path: 'admin/settings',
+        loadComponent: () => import('./pages/admin-settings/admin-settings.page').then((m) => m.AdminSettingsPage),
+        canActivate: [requireCapabilities('config.manage')],
+      },
+      {
         path: 'docs/:topic',
         loadComponent: () => import('./pages/docs/docs.page').then((m) => m.DocsPage),
       },

@@ -56,6 +56,62 @@
   </ion-card>
 
   <ion-card>
+    <ion-card-header><ion-card-title>Systems of Record</ion-card-title></ion-card-header>
+    <ion-card-content>
+      <p class="muted">
+        Inherited from global settings unless overridden here.
+        @if (sorSaved()) { <ion-text color="success">Saved.</ion-text> }
+      </p>
+      <ion-list>
+        @for (entry of d.systemsOfRecord.catalog; track entry.key) {
+          <ion-item lines="full">
+            <ion-checkbox slot="start"
+              [checked]="sorOverridden.has(entry.key)"
+              [disabled]="!canApprove('projects.manage')"
+              (ionChange)="toggleSorOverride(entry.key, $event.detail.checked)"></ion-checkbox>
+            <ion-label>
+              <h3>
+                {{ entry.label }}
+                @if (sorOverridden.has(entry.key)) { <ion-chip color="warning">override</ion-chip> }
+                @else { <ion-chip color="medium">inherited</ion-chip> }
+              </h3>
+              @if (sorOverridden.has(entry.key) && canApprove('projects.manage')) {
+                <ion-select [(ngModel)]="sorValues[entry.key].provider" interface="popover"
+                  label="System" labelPlacement="stacked" [ngModelOptions]="{ standalone: true }">
+                  @for (p of entry.allowedProviders; track p) {
+                    <ion-select-option [value]="p">{{ providerLabel(p) }}</ion-select-option>
+                  }
+                </ion-select>
+                <ion-input [(ngModel)]="sorValues[entry.key].url" [placeholder]="entry.urlHint"
+                  label="URL" labelPlacement="stacked" [ngModelOptions]="{ standalone: true }"></ion-input>
+                @if (entry.requiresProject) {
+                  <ion-input [(ngModel)]="sorValues[entry.key].project" placeholder="AgenticSDLC"
+                    label="Project / repository" labelPlacement="stacked"
+                    [ngModelOptions]="{ standalone: true }"></ion-input>
+                }
+              } @else {
+                <p class="muted">{{ providerLabel(d.systemsOfRecord.effective[entry.key].provider) }}</p>
+                @if (d.systemsOfRecord.effective[entry.key].url) {
+                  <p><a [href]="d.systemsOfRecord.effective[entry.key].url" target="_blank" rel="noopener noreferrer">
+                    {{ d.systemsOfRecord.effective[entry.key].url }}</a></p>
+                }
+                @if (d.systemsOfRecord.effective[entry.key].project) {
+                  <p class="muted">Project: {{ d.systemsOfRecord.effective[entry.key].project }}</p>
+                }
+              }
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+      @if (canApprove('projects.manage')) {
+        <ion-button size="small" (click)="saveSystemsOfRecord()" [disabled]="busy() === 'systems-of-record'">
+          @if (busy() === 'systems-of-record') { <ion-spinner name="dots"></ion-spinner> } @else { Save systems of record }
+        </ion-button>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
     <ion-card-header><ion-card-title>Run agents</ion-card-title></ion-card-header>
     <ion-card-content>
       <p class="muted">Agents blocked by an unapproved gate return a 403 (enforced server-side).</p>

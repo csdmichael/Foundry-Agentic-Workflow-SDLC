@@ -14,7 +14,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .errors import ApiError
-from .routers import agents, approvals, audit, auth, config as config_router, projects, uploads, users
+from .routers import (
+    agents,
+    approvals,
+    audit,
+    auth,
+    config as config_router,
+    projects,
+    settings as settings_router,
+    uploads,
+    users,
+)
 from .users_service import ensure_seed_users
 
 
@@ -66,7 +76,7 @@ def create_app() -> FastAPI:
     async def health():
         return {"status": "ok", "service": "agentic-sdlc-api"}
 
-    for module in (auth, users, projects, approvals, agents, audit, config_router, uploads):
+    for module in (auth, users, projects, approvals, agents, audit, config_router, settings_router, uploads):
         app.include_router(module.router)
 
     return app
