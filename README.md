@@ -17,21 +17,22 @@ action advances to the next stage.
 2. [Architecture at a glance](#architecture-at-a-glance)
 3. [Data flow](#data-flow)
 4. [Agent Framework workflow](#agent-framework-workflow)
-5. [Features](#features)
-6. [Technology stack](#technology-stack)
-7. [Repository layout](#repository-layout)
-8. [Quick start (local)](#quick-start-local)
-9. [Authentication & roles](#authentication--roles)
-10. [Human-in-the-loop approval gates](#human-in-the-loop-approval-gates)
-11. [Specialized agents](#specialized-agents)
-12. [Systems of Record](#systems-of-record)
-13. [Configuration](#configuration)
-14. [Security & guardrails](#security--guardrails)
-15. [Testing](#testing)
-16. [Deployment (CI/CD)](#deployment-cicd)
-17. [Documentation](#documentation)
-18. [References](#references)
-19. [License](#license)
+5. [Agents in the workflow](#agents-in-the-workflow)
+6. [Features](#features)
+7. [Technology stack](#technology-stack)
+8. [Repository layout](#repository-layout)
+9. [Quick start (local)](#quick-start-local)
+10. [Authentication & roles](#authentication--roles)
+11. [Human-in-the-loop approval gates](#human-in-the-loop-approval-gates)
+12. [Specialized agents](#specialized-agents)
+13. [Systems of Record](#systems-of-record)
+14. [Configuration](#configuration)
+15. [Security & guardrails](#security--guardrails)
+16. [Testing](#testing)
+17. [Deployment (CI/CD)](#deployment-cicd)
+18. [Documentation](#documentation)
+19. [References](#references)
+20. [License](#license)
 
 ---
 
@@ -228,6 +229,114 @@ sequenceDiagram
   The HTTP API preserves its non-bypassable `403` contract until the named gate is
   approved. Model execution remains behind APIM; the framework does not introduce
   a direct Foundry path.
+
+## Agents in the workflow
+
+The diagrams below show the seven logical agent handoffs in execution order.
+Every agent consumes approved artifacts from the preceding phase together with
+the relevant systems of record, then persists outputs that become the next
+agent's inputs. The final Insights Agent feeds recommendations back to Planning,
+making the workflow a continuous improvement loop.
+
+The runtime configuration can split a logical phase across more specialized
+agents (for example, Requirements and Planning in the plan phase, or Test
+Planning, Testing, and Test Automation in the test phase). It also inserts the
+explicit Security & Compliance stage described above. All of those runs still
+use the same approval-gated Agent Framework execution path.
+
+### 1. Planning Agent (Plan & Scope)
+
+![Planning Agent inputs, outputs, and workflow handoff](docs/Agents/01_Planning_Agent.png)
+
+The Planning Agent turns business intent and existing documentation into an
+actionable, prioritized delivery scope.
+
+- **Inputs:** requirements, goals, constraints, and priorities from human or
+  business stakeholders; supporting SharePoint documentation. This is the first
+  agent, so it has no previous-agent dependency.
+- **Outputs:** Azure DevOps work items containing the approved scope, epics,
+  features, user stories, tasks, estimates, and priorities. These records and
+  their planning context are handed to the Architecture Agent.
+
+### 2. Architecture Agent (Design)
+
+![Architecture Agent inputs, outputs, and workflow handoff](docs/Agents/02_Architecture_Agent.png)
+
+The Architecture Agent translates the approved plan into an implementable and
+secure technical design.
+
+- **Inputs:** the Planning Agent's approved backlog in Azure DevOps and the
+  related requirements and reference documentation in SharePoint.
+- **Outputs:** solution architecture, data models, API contracts, security
+  design, and threat-model documentation in SharePoint, with associated Azure
+  DevOps work-item updates. The approved design is handed to the Code Generation
+  Agent.
+
+### 3. Code Generation Agent (Build)
+
+![Code Generation Agent inputs, outputs, and workflow handoff](docs/Agents/03_Code_Generation_Agent.png)
+
+The Code Generation Agent implements the approved design while keeping source
+changes traceable to the backlog.
+
+- **Inputs:** architecture decisions and acceptance criteria represented by
+  Azure DevOps work items, plus the existing GitHub repository and source code.
+- **Outputs:** generated or updated GitHub source code, unit tests, and code-review
+  suggestions, along with linked Azure DevOps work-item updates. The resulting
+  implementation is handed to the Test Automation Agent.
+
+### 4. Test Automation Agent (Test)
+
+![Test Automation Agent inputs, outputs, and workflow handoff](docs/Agents/04_Test_Automation_Agent.png)
+
+The Test Automation Agent verifies the implementation against the approved
+requirements and records quality evidence.
+
+- **Inputs:** generated code and unit tests from GitHub, plus acceptance criteria
+  and implementation work items from Azure DevOps.
+- **Outputs:** Azure DevOps test plans and test cases, execution results, defect
+  reports, and updated work items. Accepted test evidence is handed to the
+  Deployment Agent.
+
+### 5. Deployment Agent (Deploy)
+
+![Deployment Agent inputs, outputs, and workflow handoff](docs/Agents/05_Deployment_Agent.png)
+
+The Deployment Agent packages validated code, runs the release pipeline, and
+deploys the approved build to Azure.
+
+- **Inputs:** validated build and test evidence from the Test Automation Agent,
+  Azure DevOps pipeline definitions, and release work items.
+- **Outputs:** build and package artifacts, Azure DevOps pipeline and deployment
+  records, and the running application on Azure App Service. Deployment context
+  is handed to the Ops Monitoring Agent.
+
+### 6. Ops Monitoring Agent (Operate)
+
+![Ops Monitoring Agent inputs, outputs, and workflow handoff](docs/Agents/06_Ops_Monitoring_Agent.png)
+
+The Ops Monitoring Agent watches the deployed service and converts operational
+signals into actionable incidents and remediation guidance.
+
+- **Inputs:** deployment context, application telemetry from Azure Application
+  Insights and Log Analytics, and current Azure DevOps operational work items.
+- **Outputs:** health and performance findings, alerts, incident triage,
+  auto-remediation suggestions, and updated Azure DevOps work items. Operational
+  evidence is handed to the Insights Agent.
+
+### 7. Insights Agent (Improve)
+
+![Insights Agent inputs, outputs, and workflow handoff](docs/Agents/07_Insights_Agent.png)
+
+The Insights Agent closes the lifecycle by turning delivery and production data
+into the next set of improvements.
+
+- **Inputs:** metrics and logs from Azure Application Insights and Log Analytics,
+  operational work items from Azure DevOps, and findings from the Ops Monitoring
+  Agent.
+- **Outputs:** risks, trends, improvement opportunities, and recommended next
+  actions captured as Azure DevOps work items and SharePoint documentation. Those
+  recommendations return to the Planning Agent as input for the next iteration.
 
 
 ## Features
