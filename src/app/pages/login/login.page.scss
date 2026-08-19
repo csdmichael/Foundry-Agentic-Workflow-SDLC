@@ -163,6 +163,26 @@
   --border-radius: 10px;
   margin-top: 10px;
 }
+.entra-hint {
+  color: #5a6472;
+  font-size: 0.82rem;
+  text-align: center;
+  margin: 12px 2px 0;
+}
+.link-btn {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #0a63c9;
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.link-btn:disabled {
+  color: #8a94a3;
+  cursor: default;
+}
 .guest-note {
   color: #8a94a3;
   font-size: 0.78rem;

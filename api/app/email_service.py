@@ -4,12 +4,15 @@ Prefers Azure Communication Services Email when configured; otherwise logs the
 code to the server console and a dev log file (DEV/DEMO ONLY).
 """
 import json
+import logging
 import math
 import os
 from pathlib import Path
 
 from .config import CONFIG
 from .persistence import _data_root
+
+logger = logging.getLogger(__name__)
 
 
 def send_otp_email(email: str, code: str) -> bool:
@@ -21,10 +24,17 @@ def send_otp_email(email: str, code: str) -> bool:
     )
 
     conn = CONFIG["secrets"]["acsConnectionString"]
-    sender = CONFIG["secrets"]["acsSenderAddress"] or ext["emailFrom"]
-    if conn and sender:
+    sender = CONFIG["secrets"]["acsSenderAddress"]
+    if not conn or not sender:
+        logger.warning(
+            "OTP email not sent: ACS is not configured "
+            "(AUTH_ACS_CONNECTION_STRING set=%s, AUTH_ACS_SENDER_ADDRESS set=%s).",
+            bool(conn),
+            bool(sender),
+        )
+    else:
         try:
-            from azure.communication.email import EmailClient  # optional dependency
+            from azure.communication.email import EmailClient
 
             client = EmailClient.from_connection_string(conn)
             poller = client.begin_send(
@@ -34,17 +44,28 @@ def send_otp_email(email: str, code: str) -> bool:
                     "recipients": {"to": [{"address": email}]},
                 }
             )
-            poller.result()
+            result = poller.result()
+            status = (result or {}).get("status") if isinstance(result, dict) else None
+            logger.info("OTP email sent via ACS to %s (status=%s).", email, status)
             return True
-        except Exception as err:  # fall through to dev fallback on transport failure
-            print("ACS email send failed, using dev fallback:", err)
+        except ImportError:
+            logger.error(
+                "OTP email not sent: the 'azure-communication-email' package is missing. "
+                "Add it to api/requirements.txt and redeploy."
+            )
+        except Exception:  # fall through to dev fallback on transport failure
+            logger.exception("ACS email send failed for %s, using dev fallback.", email)
 
     _log_dev_otp(email, code)
     return False
 
 
 def _log_dev_otp(email: str, code: str) -> None:
-    print(f"[DEV OTP] {email} -> {code} (SMTP/ACS not configured)")
+    # Plaintext codes are only ever persisted when the dev bypass flag is on.
+    if not CONFIG["flags"]["otpDevBypass"]:
+        logger.error("OTP for %s could not be delivered and dev logging is disabled.", email)
+        return
+    logger.warning("[DEV OTP] %s -> %s (ACS not configured or send failed)", email, code)
     try:
         _data_root.mkdir(parents=True, exist_ok=True)
         file = _data_root / "otp-log.json"

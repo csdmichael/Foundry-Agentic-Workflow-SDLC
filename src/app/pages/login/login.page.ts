@@ -78,7 +78,7 @@ export class LoginPage {
       this.step.set('code');
       this.info.set(
         res.delivered
-          ? 'A verification code was emailed to you.'
+          ? 'A verification code was emailed to you. Check your junk folder if it does not arrive within a minute.'
           : 'Demo mode: check the API console/otp-log for your code (or use 000000).',
       );
     } catch (err) {

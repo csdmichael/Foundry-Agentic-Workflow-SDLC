@@ -34,15 +34,16 @@
       <div class="auth-card">
         <h2>Sign in</h2>
         <p class="auth-sub">
-          Use your Microsoft Entra ID for single sign-on, request a one-time passcode by email, or
-          continue as a guest for read-only access.
+          Enter your email address and we'll send you a one-time passcode. Accounts on
+          <strong>{{ ui.brand.tenantDomain }}</strong> use Microsoft Entra ID single sign-on
+          instead. Or continue as a guest for read-only access.
         </p>
 
         @if (error()) { <div class="msg error">{{ error() }}</div> }
         @if (info()) { <div class="msg info">{{ info() }}</div> }
 
         @if (step() === 'email') {
-          <label class="field-label">Work email</label>
+          <label class="field-label">Email address</label>
           <ion-input
             class="field"
             fill="outline"
@@ -63,15 +64,22 @@
           </div>
 
           <ion-button expand="block" class="primary-btn" (click)="sendCode()" [disabled]="loading()">
-            @if (loading()) { <ion-spinner name="dots"></ion-spinner> } @else { Continue }
+            @if (loading()) {
+              <ion-spinner name="dots"></ion-spinner>
+            } @else {
+              <ion-icon slot="start" name="mail-outline"></ion-icon>
+              Sign in with your email
+            }
           </ion-button>
+
+          <p class="entra-hint">
+            On <strong>{{ ui.brand.tenantDomain }}</strong>?
+            <button type="button" class="link-btn" (click)="entra()" [disabled]="isBusy()">
+              Sign in with Microsoft Entra ID
+            </button>
+          </p>
 
           <div class="or"><span>OR</span></div>
-
-          <ion-button expand="block" fill="outline" class="entra-btn" (click)="entra()" [disabled]="isBusy()">
-            <ion-icon slot="start" name="logo-microsoft"></ion-icon>
-            Sign in with Microsoft Entra ID
-          </ion-button>
 
           <ion-button expand="block" fill="outline" class="guest-btn" (click)="guest()" [disabled]="isBusy()">
             @if (guestLoading()) {
